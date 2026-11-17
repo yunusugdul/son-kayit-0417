@@ -66,6 +66,8 @@ jobs:
           git diff --cached --quiet || (git commit -m 'docs: record Stage 0 browser and build measurements' && git push origin HEAD:main)
       - name: Prepare GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:

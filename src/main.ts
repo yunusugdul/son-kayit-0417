@@ -120,7 +120,6 @@ function startStage0(
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const hit = new THREE.Vector3();
   const moveTarget = new THREE.Vector3();
   const direction = new THREE.Vector3();
@@ -173,7 +172,10 @@ function startStage0(
       -((event.clientY - rect.top) / rect.height) * 2 + 1,
     );
     raycaster.setFromCamera(pointer, camera);
-    if (!raycaster.ray.intersectPlane(plane, hit)) return;
+    // Sadece zeminin üst yüzeyine tıklama geçerli; boşluklar hedef sayılmaz.
+    const groundHit = raycaster.intersectObject(ground, false).find(({ point }) => Math.abs(point.y) < 0.02);
+    if (!groundHit) return;
+    hit.copy(groundHit.point);
     moveTarget.set(
       THREE.MathUtils.clamp(hit.x, -MOVE_LIMIT, MOVE_LIMIT),
       0,

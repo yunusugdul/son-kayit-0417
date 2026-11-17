@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "engines": { "node": ">=26 <27" },
+  "engines": {
+    "node": ">=26 <27"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
@@ -12,13 +14,17 @@
     "test:e2e": "playwright test",
     "check": "npm run build",
     "report:sizes": "node scripts/report-sizes.mjs",
-    "report:stage0": "node scripts/write-report.mjs"
+    "report:stage0": "node scripts/write-report.mjs",
+    "check:tools": "node scripts/check-tools.mjs"
   },
-  "dependencies": { "three": "0.187.0" },
+  "dependencies": {
+    "three": "0.187.0"
+  },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
     "@types/three": "0.187.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "@types/node": "^26.0.0"
   }
 }
