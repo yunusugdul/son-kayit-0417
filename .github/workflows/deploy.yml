@@ -42,8 +42,8 @@ jobs:
         run: npm run check
       - name: Inspect statically served file sizes
         run: npm run report:sizes
-      - name: Install Chromium browser
-        run: npx playwright install --with-deps chromium
+      - name: Confirm runner Chrome installation
+        run: google-chrome --version
       - name: Browser smoke tests (production preview)
         run: npm run test:e2e
       - name: Generate performance and transfer report

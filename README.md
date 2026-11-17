@@ -23,7 +23,7 @@ npm run report:sizes
 npm run test:e2e
 ```
 
-`npm run test:e2e` öncesi `npx playwright install chromium` gerekir. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
+`npm run test:e2e` öncesi yerelde `npx playwright install chromium` gerekir. CI, Ubuntu çalıştırıcısında önceden kurulu Chrome ile test yapar. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
 
 ## Dağıtım
 

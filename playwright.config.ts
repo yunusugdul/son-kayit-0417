@@ -9,6 +9,8 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: 'http://127.0.0.1:4173',
     headless: true,
+    // CI'da Ubuntu runner'ın kurulu Chrome'unu kullan; yerelde Playwright Chromium.
+    channel: process.env.CI ? 'chrome' : undefined,
     launchOptions: {
       // Linux headless WebGL2 smoke test: yazılımsal SwiftShader.
       args: ['--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
