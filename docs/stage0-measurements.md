@@ -7,7 +7,7 @@
 | Üretim çıktısı (ham) | 536.1 KiB | Vite dist/ |
 | Üretim çıktısı (tahmini gzip) | 133.8 KiB | Dosya dosya gzip, gerçek CDN transferi değil |
 | Local preview yanıt gövdeleri | 536.1 KiB | Headless tarayıcı, sıkıştırılmamış |
-| FPS örneği | 54 | Gerçek cihaz / GPU performansı olarak yorumlanamaz |
+| FPS örneği | 39 | Gerçek cihaz / GPU performansı olarak yorumlanamaz |
 | Draw call | 6 | renderer.info.render.calls |
 | Ekran | 1080 × 720 | Masaüstü örnek, mobil 390 × 844 |
 
