@@ -18,10 +18,13 @@
 - [x] Masaüstü ve mobil ekran görüntüleri `stage0-evidence` Actions artifact'ına eklendi
 - [x] `docs/stage0-measurements.md` üretildi: 536.1 KiB ham / 133.8 KiB tahmini gzip, 6 draw call
 - [x] **İlk statik yayın:** Render `https://son-kayit-0417.onrender.com/` canlı, otomatik deploy açık; ilk dağıtım `dep-dbuea16c6qcc73dgfem0` durum `live`
-- [ ] **İsteğe bağlı GitHub Pages:** Depo ayarı henüz etkin değil; workflow otomatik etkinleştirme yetkisizliğinde deploy'u atlar. Kullanıcı Settings → Pages → Source: GitHub Actions seçebilir
+- [x] **Canlı HTTP kontrolü:** Render ana sayfası ve derlenmiş JS/CSS dosyaları GitHub Actions üzerinden HTTP 200 doğrulandı
+- [ ] **İsteğe bağlı GitHub Pages:** Ana statik yayın Render üzerinde tamamlandı. GitHub Pages ayrıca açılacaksa kullanıcı Settings → Pages → Source: GitHub Actions ayarını yapmalı.
 - [ ] Gerçek Android/iOS cihaz, Safari/Firefox ve fiziksel GPU/FPS ölçümü (CI bunların yerine geçmez)
-- [ ] Bağımlılık audit ayrıntıları değerlendirilecek (ilk npm kurulumunda 4 yüksek öncelikli uyarı raporlandı)
+- [x] **Bağımlılık denetimi ayrıştırıldı:** `npm audit --omit=dev` çıktısında **0 güvenlik açığı**; tam `npm audit` çıktısında **4 yüksek** uyarı, geliştirme aracındaki `picomatch` transitive bağımlılık zincirinden (`fdir`, `tinyglobby`, `vite`). Üretime geliştirme bağımlılıkları dağıtılmıyor. Uygun yama çıkana kadar takip edilmeli; `npm audit fix --force` ile kırıcı sürüm düşürmesi yapılmadı.
 
-**Sınır:** 38 FPS, GitHub'ın yazılımsal WebGL kullanan headless Chrome ortamında örnektir; gerçek kullanıcı FPS'i değildir.
+**Sınır:** Son kayıttaki yaklaşık 42 FPS, GitHub'ın yazılımsal WebGL kullanan headless Chrome ortamında örnektir; gerçek kullanıcı FPS'i değildir.
+
+**Aşama 0 kararı:** Git deposu, 3D teknik prototip, girdi, CI testleri, ölçüm ve canlı statik Render yayını başarılı. GitHub Pages ikinci sağlayıcıdır ve Aşama 0 için gerekli değildir. Fiziksel cihaz denemeleri hedef cihazda ayrıca gerçekleştirilmelidir.
 
 **Bir sonraki teknik aşama:** Yalnız kullanıcı talimat verdiğinde Aşama 1 (NavGraph + A*). L01 bulmaca, yankı, kayıt ve GLB bu aşamada bilinçli olarak yapılmadı.
