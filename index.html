@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#152531" />
+    <meta name="description" content="Son Kayıt: 04.17 — üç boyutlu izometrik hikâye-bulmaca oyununun Aşama 0 teknik prototipi." />
+    <title>SON KAYIT: 04.17 — Teknik Prototip</title>
+  </head>
+  <body>
+    <div id="app">
+      <main class="stage" aria-label="Son Kayıt: 04.17 teknik prototip sahnesi">
+        <div id="game-view" class="game-view" aria-label="İzometrik oyun sahnesi"></div>
+        <div class="shade shade-top" aria-hidden="true"></div>
+        <div class="shade shade-bottom" aria-hidden="true"></div>
+
+        <header class="heading">
+          <div class="eyebrow"><span class="signal" aria-hidden="true"></span> TEKNİK PROTOTİP <span class="sep">/</span> AŞAMA 00</div>
+          <h1>SON KAYIT<span class="gold">: 04.17</span></h1>
+          <p class="subhead">Unutulmuş bir kasabaya atılan ilk adım.</p>
+        </header>
+
+        <aside class="control-help" aria-label="Kontroller">
+          <div class="control-title">HAREKET PROTOTİPİ</div>
+          <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span class="or">veya</span> <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></p>
+          <p class="small"><span class="click-symbol" aria-hidden="true">◎</span> Zemine tıkla / dokun: hedefe yürü</p>
+          <p class="note">Bu sahne engel içermez. Bulmacalar ve gezinme ağı sonraki aşamalarda eklenecek.</p>
+        </aside>
+
+        <div class="scene-meta" aria-hidden="true">
+          <span>PROTOTİP / 01</span>
+          <span class="hairline"></span>
+          <span>10 × 10 m</span>
+        </div>
+        <output id="debug-panel" class="debug-panel" aria-label="Geliştirici performans bilgileri" hidden></output>
+        <section id="fallback" class="fallback" role="alert" hidden>
+          <div class="fallback-inner">
+            <span class="fallback-icon" aria-hidden="true">◈</span>
+            <h2>Bu cihazda 3D sahne açılamıyor</h2>
+            <p>SON KAYIT: 04.17, WebGL2 destekli güncel bir tarayıcı gerektirir. Tarayıcıyı güncellemeyi veya başka bir cihaz kullanmayı deneyin.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

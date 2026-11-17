@@ -1,0 +1,59 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+  background: #152531;
+  color: #ecf1eb;
+}
+* { box-sizing: border-box; }
+html, body, #app, .stage { width: 100%; height: 100%; height: 100dvh; margin: 0; overflow: hidden; }
+body { min-height: 320px; }
+.stage { position: relative; isolation: isolate; background: radial-gradient(ellipse at 50% 46%, #2f4b57 0%, #152531 75%); }
+.game-view { position: absolute; inset: 0; }
+.game-view canvas { display: block; width: 100%; height: 100%; touch-action: none; outline-offset: -4px; }
+.shade { pointer-events: none; position: absolute; left: 0; right: 0; height: 28%; z-index: 1; }
+.shade-top { top: 0; background: linear-gradient(to bottom, rgba(12, 27, 36, 0.78), transparent); }
+.shade-bottom { bottom: 0; background: linear-gradient(to top, rgba(12, 27, 36, 0.93), transparent); }
+.heading { position: absolute; top: clamp(23px, 5.5vh, 58px); left: clamp(20px, 5.1vw, 82px); z-index: 2; pointer-events: none; }
+.eyebrow, .control-title, .scene-meta { font-size: 10px; font-weight: 700; letter-spacing: .25em; color: #9ab7b3; }
+.eyebrow { display: flex; align-items: center; gap: 12px; }
+.signal { width: 7px; height: 7px; background: #80dac5; border-radius: 50%; box-shadow: 0 0 14px #80dac5; }
+.sep { color: #6b8a8b; }
+h1 { font-size: clamp(27px, 3.65vw, 54px); line-height: 1.08; letter-spacing: -.07em; font-weight: 670; margin: 13px 0 10px; }
+.gold { color: #ecc081; }
+.subhead { font-size: clamp(12px, 1.15vw, 15px); margin: 0; font-weight: 400; color: #b3c9c8; letter-spacing: .025em; }
+.control-help { position: absolute; bottom: clamp(20px, 5.3vh, 64px); left: clamp(20px, 5.1vw, 82px); max-width: 480px; z-index: 2; }
+.control-title { margin-bottom: 16px; }
+.control-help p { margin: 0 0 10px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 27px; padding: 0 5px; border-radius: 5px; border: 1px solid #54747c; background: rgba(23, 40, 52, .8); font-size: 12px; font-family: inherit; font-weight: 650; color: #e9efec; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+.or { font-size: 12px; color: #b2c6c5; margin: 0 9px; }
+.control-help .small { font-size: 13px; color: #d2e1db; margin-top: 11px; }
+.click-symbol { font-size: 20px; color: #87dccc; margin-right: 4px; }
+.control-help .note { color: #95aaa9; font-size: 11px; line-height: 1.55; margin-top: 12px; max-width: 330px; }
+.scene-meta { position: absolute; bottom: clamp(20px, 5.3vh, 64px); right: clamp(20px, 5.1vw, 82px); z-index: 2; display: flex; align-items: center; gap: 13px; }
+.hairline { height: 1px; width: 28px; background: #779398; }
+.debug-panel { position: absolute; top: clamp(18px, 4.2vh, 48px); right: clamp(15px, 3vw, 45px); z-index: 4; padding: 12px 16px; min-width: 150px; font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; color: #adf4d9; background: rgba(5, 23, 30, .85); border: 1px solid #587d79; border-radius: 7px; white-space: pre-line; pointer-events: none; }
+[hidden] { display: none !important; }
+.fallback { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; background: #152531; text-align: center; }
+.fallback-inner { max-width: 450px; }
+.fallback-icon { font-size: 56px; color: #e7bb7d; }
+.fallback h2 { font-size: clamp(24px, 4.5vw, 32px); line-height: 1.2; margin: 20px 0 12px; }
+.fallback p { font-size: 15px; line-height: 1.7; color: #bac9c9; }
+@media (max-width: 650px) {
+  .heading { top: max(20px, env(safe-area-inset-top)); }
+  .control-help { bottom: max(18px, env(safe-area-inset-bottom)); right: 20px; }
+  .control-title { margin-bottom: 12px; }
+  .control-help p:has(kbd) { display: none; }
+  .control-help .note { max-width: 270px; font-size: 10px; }
+  .scene-meta { bottom: auto; top: 115px; right: 20px; font-size: 9px; }
+  .debug-panel { top: auto; bottom: 140px; right: 12px; font-size: 10px; }
+}
+@media (max-height: 450px) {
+  .heading { top: 12px; }
+  .heading h1 { font-size: 25px; margin: 6px 0; }
+  .control-help { bottom: 10px; }
+  .control-help .note, .control-help .control-title { display: none; }
+  .scene-meta { bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; } }
