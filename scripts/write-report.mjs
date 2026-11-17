@@ -4,7 +4,7 @@ const sizes = JSON.parse(await readFile('artifacts/size-report.json', 'utf8'));
 const metrics = JSON.parse(await readFile('artifacts/browser-metrics.json', 'utf8'));
 const date = new Date().toISOString().slice(0, 10);
 const report = `# Aşama 0 — otomatik ölçüm raporu\n\n` +
-  `**Çalıştırma:** ${date}, GitHub Actions / Linux / headless Chromium (SwiftShader)\n\n` +
+  `**Çalıştırma:** ${date}, GitHub Actions / Linux / headless Chrome (yazılımsal WebGL; gerçek cihaz değil)\n\n` +
   `| Ölçüm | Sonuç | Not |\n|---|---:|---|\n` +
   `| Üretim çıktısı (ham) | ${bytes(sizes.rawBytes)} | Vite dist/ |\n` +
   `| Üretim çıktısı (tahmini gzip) | ${bytes(sizes.gzipBytes)} | Dosya dosya gzip, gerçek CDN transferi değil |\n` +

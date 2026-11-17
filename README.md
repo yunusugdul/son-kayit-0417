@@ -27,7 +27,7 @@ npm run test:e2e
 
 ## Dağıtım
 
-`main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak seçilmelidir (Settings → Pages → Build and deployment → Source). Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
+`main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak kullanıcı tarafından seçilmelidir (Settings → Pages → Build and deployment → Source). Pages henüz etkin değilse derleme/test geçer, dağıtım adımı **atlanır** ve Actions özetinde yönetici ayarı belirtilir. Etkinleştirdikten sonra workflow'u yeniden çalıştırın. Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
 
 Workflow ilk çalışmada, kilit dosyası yoksa npm ile `package-lock.json` üretip repo'ya commit eder. Sonraki çalışmalarda `npm ci` kullanılır; sürüm güncellemesi ayrı PR ile yapılır. Kullanıcı/test verileri hiçbir sunucuya gönderilmez.
 

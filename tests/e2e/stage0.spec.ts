@@ -76,7 +76,7 @@ test('gerçek 3D sahne, WASD, ok tuşu, pointer, resize ve debug çalışır', a
   await mkdir('artifacts', { recursive: true });
   await page.screenshot({ path: 'artifacts/stage0-desktop.png', fullPage: true });
   await writeFile('artifacts/browser-metrics.json', JSON.stringify({
-    environment: 'GitHub Actions headless Chromium, software WebGL (not physical-device FPS)',
+    environment: 'GitHub Actions headless Chrome, software WebGL (not physical-device FPS)',
     viewport: [1080, 720], fpsSample: fps, drawCalls,
     servedBodyBytes: transfers.reduce((sum, request) => sum + request.bytes, 0),
     requests: transfers,
