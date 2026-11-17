@@ -21,11 +21,15 @@ npm run build
 npm run preview
 npm run report:sizes
 npm run test:e2e
+npm run check:live
 ```
 
 `npm run test:e2e` öncesi yerelde `npx playwright install chromium` gerekir. CI, Ubuntu çalıştırıcısında önceden kurulu Chrome ile test yapar. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
 
 ## Dağıtım
+
+**Canlı Aşama 0 statik prototipi:** https://son-kayit-0417.onrender.com/ — Render, GitHub `main` otomatik dağıtım; `npm ci && npm run build`, yayın klasörü `dist/`. Canlı HTTP ve JS/CSS smoke doğrulaması `npm run check:live` ile yapılabilir.
+
 
 `main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak kullanıcı tarafından seçilmelidir (Settings → Pages → Build and deployment → Source). Pages henüz etkin değilse derleme/test geçer, dağıtım adımı **atlanır** ve Actions özetinde yönetici ayarı belirtilir. Etkinleştirdikten sonra workflow'u yeniden çalıştırın. Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
 

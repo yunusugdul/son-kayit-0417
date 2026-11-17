@@ -17,8 +17,10 @@
 - [x] `npm run preview` ile açılan üretim çıktı üzerinde 4 Playwright testi başarılı
 - [x] Masaüstü ve mobil ekran görüntüleri `stage0-evidence` Actions artifact'ına eklendi
 - [x] `docs/stage0-measurements.md` üretildi: 536.1 KiB ham / 133.8 KiB tahmini gzip, 6 draw call
-- [ ] **Canlı statik yayın:** GitHub Pages depo ayarı henüz etkin değil. Workflow'daki otomatik etkinleştirme GitHub tarafından "Resource not accessible by integration" ile engellendi; Settings → Pages → Source: GitHub Actions yönetici işlemi gerektirir
+- [x] **İlk statik yayın:** Render `https://son-kayit-0417.onrender.com/` canlı, otomatik deploy açık; ilk dağıtım `dep-dbuea16c6qcc73dgfem0` durum `live`
+- [ ] **İsteğe bağlı GitHub Pages:** Depo ayarı henüz etkin değil; workflow otomatik etkinleştirme yetkisizliğinde deploy'u atlar. Kullanıcı Settings → Pages → Source: GitHub Actions seçebilir
 - [ ] Gerçek Android/iOS cihaz, Safari/Firefox ve fiziksel GPU/FPS ölçümü (CI bunların yerine geçmez)
+- [ ] Bağımlılık audit ayrıntıları değerlendirilecek (ilk npm kurulumunda 4 yüksek öncelikli uyarı raporlandı)
 
 **Sınır:** 38 FPS, GitHub'ın yazılımsal WebGL kullanan headless Chrome ortamında örnektir; gerçek kullanıcı FPS'i değildir.
 

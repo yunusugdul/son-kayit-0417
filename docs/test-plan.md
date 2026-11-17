@@ -11,7 +11,7 @@ Tasarım belgesi §17, §18 ve §20.1 gereği:
 7. WebGL2 devre dışıyken anlaşılır hata ekranı görünmeli; yakalanmamış JS hata olmamalı.
 8. Developer FPS/draw call paneli `dev` veya `?debug=1` seçiliyken görünmeli.
 9. CI otomasyonu ekran görüntüsü, aktarım boyutu ve headless FPS örneğini `artifacts/` klasörüne kaydetmeli. Bunlar gerçek mobil performans ölçümü değildir.
-10. `main` build'i GitHub Pages'e dağıtılmalı; yayın URL'si gerçek istekle doğrulanmalıdır.
+10. `main` üretim build'i bir statik host'a (Render / GitHub Pages) dağıtılmalı; yayın URL'si ve JS/CSS varlıkları gerçek HTTP isteğiyle doğrulanmalıdır.
 
 **Yalnızca headless Chromium testleri**, Firefox/iOS/gerçek mobil GPU doğrulamasının yerini tutmaz. Aşama 0'daki tıkla-git engelden kaçınmaz: bu bir hata değil, §18'de açıkça belirtilmiş Aşama 1'e ertelenmiş iştir.
 

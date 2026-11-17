@@ -40,10 +40,18 @@ jobs:
           fi
       - name: Install from lockfile
         run: npm ci
+      - name: Collect dependency security audit
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          npm audit --json > artifacts/npm-audit-all.json || true
+          npm audit --omit=dev --json > artifacts/npm-audit-prod.json || true
       - name: Typecheck and production build
         run: npm run check
       - name: Inspect statically served file sizes
         run: npm run report:sizes
+      - name: Verify live Render HTML and static assets
+        run: npm run check:live
       - name: Confirm runner Chrome installation
         run: google-chrome --version
       - name: Browser smoke tests (production preview)

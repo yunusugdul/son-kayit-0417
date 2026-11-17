@@ -15,7 +15,8 @@
     "check": "npm run build",
     "report:sizes": "node scripts/report-sizes.mjs",
     "report:stage0": "node scripts/write-report.mjs",
-    "check:tools": "node scripts/check-tools.mjs"
+    "check:tools": "node scripts/check-tools.mjs",
+    "check:live": "node scripts/check-live.mjs"
   },
   "dependencies": {
     "three": "0.187.0"
