@@ -55,7 +55,15 @@ test('gerçek 3D sahne, WASD, ok tuşu, pointer, resize ve debug çalışır', a
   const canvas = page.locator('#game-view canvas');
   const rect = await canvas.boundingBox();
   expect(rect).not.toBeNull();
-  await page.mouse.click(rect!.x + rect!.width * 0.67, rect!.y + rect!.height * 0.57);
+  // Stage 1: choose accessible street ground, not a point behind the closed post-office door.
+  const target = await page.evaluate(() => {
+    const stage1 = (window as typeof window & {
+      __stage1?: { project(x: number, y: number, z: number): [number, number] };
+    }).__stage1;
+    if (!stage1) throw new Error('Stage 1 projection helper missing');
+    return stage1.project(-1.5, 0, 2.5);
+  });
+  await page.mouse.click(target[0], target[1]);
   await page.waitForTimeout(200);
   const afterClick = await coordinate(page);
   expect(Math.hypot(afterClick![0] - afterArrow![0], afterClick![2] - afterArrow![2])).toBeGreaterThan(0.1);

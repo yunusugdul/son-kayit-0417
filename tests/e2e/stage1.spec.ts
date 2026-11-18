@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
 
 type Debug = {
   position(): [number, number, number];
@@ -32,6 +33,8 @@ test('GLB loads with correct mesh IDs; closed door blocks access to inside', asy
   await page.waitForTimeout(350);
   const pos = await page.evaluate(() => window.__stage1!.position());
   expect(pos[0]).toBeLessThan(2);
+  await mkdir('artifacts', { recursive: true });
+  await page.screenshot({ path: 'artifacts/stage1-desktop.png', fullPage: true });
 });
 
 test('far object click plans a route; approaches safely and emits interact event', async ({ page }) => {
