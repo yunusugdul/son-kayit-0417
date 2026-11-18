@@ -17,7 +17,9 @@ import { createL01Art, type ArtQuality } from './visual/Stage4Art';
 import './style.css';
 
 const FIXED_STEP = 1 / 60;
-const MAX_FRAME = 0.1;
+// On slow software WebGL/GPU frames, simulation should track wall time while
+// movement and echo continue to integrate with the safe 1/60 fixed step.
+const MAX_FRAME = 0.25;
 const ORTHO_HEIGHT = 12;
 const MAX_DPR = 1.5;
 
