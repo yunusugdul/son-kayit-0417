@@ -6,6 +6,7 @@ export class AudioManager {
   private atmosphere: AudioBufferSourceNode | null = null;
   private windGain: GainNode | null = null;
   private windOscillator: OscillatorNode | null = null;
+  private windLfoGain: GainNode | null = null;
   private ambienceEnabled = true;
 
   setAmbienceEnabled(enabled: boolean): void {
@@ -13,6 +14,7 @@ export class AudioManager {
     const gain = this.windGain, context = this.context;
     if (gain && context) {
       gain.gain.setTargetAtTime(enabled ? 0.010 : 0, context.currentTime, 0.10);
+      this.windLfoGain?.gain.setTargetAtTime(enabled ? .0022 : 0, context.currentTime, .10);
     }
   }
   get isAmbienceEnabled(): boolean { return this.ambienceEnabled; }
@@ -43,10 +45,10 @@ export class AudioManager {
     lfo.type = 'sine';
     lfo.frequency.value = .14;
     const envelope = context.createGain();
-    envelope.gain.value = .0022;
+    envelope.gain.value = this.ambienceEnabled ? .0022 : 0;
     lfo.connect(envelope).connect(gain.gain);
     wind.start(); lfo.start();
-    this.atmosphere = wind; this.windGain = gain; this.windOscillator = lfo;
+    this.atmosphere = wind; this.windGain = gain; this.windOscillator = lfo; this.windLfoGain = envelope;
   }
 
   async unlock(): Promise<void> {
@@ -83,6 +85,6 @@ export class AudioManager {
     this.windOscillator?.stop();
     this.atmosphere = null; this.windOscillator = null;
     if (this.context) await this.context.close();
-    this.context = null; this.windGain = null;
+    this.context = null; this.windGain = null; this.windLfoGain = null;
   }
 }
