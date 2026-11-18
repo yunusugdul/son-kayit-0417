@@ -301,6 +301,7 @@ async function startStage1(
     importFile: required<HTMLInputElement>('import-file'),
     storageWarning: required<HTMLElement>('storage-warning'),
     quality: required<HTMLSelectElement>('quality-control'),
+    ambience: required<HTMLInputElement>('ambience-control'),
   };
   const audio = new AudioManager();
   const saves = new SaveManager();
@@ -543,6 +544,7 @@ async function startStage1(
     camera.top = worldHeight / 2;
     camera.bottom = -worldHeight / 2;
     camera.updateProjectionMatrix();
+    art.setQuality(qualityMode, window.innerWidth < 800 || window.matchMedia('(pointer: coarse)').matches);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprLimit()));
     renderer.setSize(width, height);
   }
@@ -615,6 +617,15 @@ async function startStage1(
   ui.completeMenu.addEventListener('click',returnToMenu);
   ui.hintButton.addEventListener('click',showHint);
   ui.quality.addEventListener('change', () => applyQuality(ui.quality.value as ArtQuality));
+  let savedAmbience: string | null = null;
+  try { savedAmbience = localStorage.getItem('son-kayit-ambience'); } catch { /* private mode */ }
+  ui.ambience.checked = savedAmbience !== 'off';
+  audio.setAmbienceEnabled(ui.ambience.checked);
+  ui.ambience.addEventListener('change', () => {
+    audio.setAmbienceEnabled(ui.ambience.checked);
+    try { localStorage.setItem('son-kayit-ambience', ui.ambience.checked ? 'on' : 'off'); }
+    catch { /* private mode */ }
+  });
   let savedQuality: string | null = null;
   try { savedQuality = localStorage.getItem('son-kayit-art-quality'); } catch { /* private mode */ }
   applyQuality(savedQuality === 'high' || savedQuality === 'low' ? savedQuality : 'auto');
