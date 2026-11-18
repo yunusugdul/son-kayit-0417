@@ -1,7 +1,9 @@
-name: Stage 2 - Echo safety, browser smoke and Pages
+name: Stage 4 - L01 gameplay, art budgets and browser smoke
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -11,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: stage2-echo-browser-smoke-and-pages
+  group: stage4-l01-art-browser-smoke-and-pages
   cancel-in-progress: true
 
 jobs:
@@ -50,15 +52,15 @@ jobs:
         run: npm run check
       - name: Inspect statically served file sizes
         run: npm run report:sizes
-      - name: Check Render public URL (non-blocking; version is not asserted)
+      - name: Check Stage 4 Render preview (non-blocking)
         id: live
         continue-on-error: true
         run: npm run check:live
       - name: Report unresolved Render publication
         if: steps.live.outcome == 'failure'
         run: |
-          echo "::warning::Render may serve an older site revision. Stage 2 build and browser tests remain independent."
-          echo "### Render deployment pending: live Stage 2 not verified" >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::Render may serve an older site revision. Stage 4 build and browser tests remain independent."
+          echo "### Render deployment pending: live Stage 4 not verified" >> "$GITHUB_STEP_SUMMARY"
           echo "GitHub source and browser tests are valid; update Render service deployment separately." >> "$GITHUB_STEP_SUMMARY"
       - name: Confirm runner Chrome installation
         run: google-chrome --version
@@ -68,12 +70,13 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: stage2-evidence
+          name: stage4-evidence
           path: |
             artifacts/
             playwright-report/
           if-no-files-found: ignore
       - name: Prepare GitHub Pages
+        if: github.event_name != 'pull_request'
         id: pages
         continue-on-error: true
         uses: actions/configure-pages@v5
@@ -94,7 +97,7 @@ jobs:
     name: Deploy GitHub Pages
     runs-on: ubuntu-latest
     needs: build
-    if: needs.build.outputs.pages_ready == 'true'
+    if: needs.build.outputs.pages_ready == 'true' && github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

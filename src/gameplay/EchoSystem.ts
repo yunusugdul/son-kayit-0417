@@ -60,6 +60,13 @@ export class EchoSystem {
     }
   }
 
+  /** New game starts with no active or held echo. */
+  reset(): void {
+    this.phase = 'inactive'; this.current = null; this.remaining = 0;
+    this.usedOneShots.clear();
+    this.onPhaseChange?.(this.snapshot);
+  }
+
   get snapshot(): EchoSnapshot {
     let visualProgress = 0;
     if (this.phase === 'materializing') visualProgress = 1 - this.remaining / MATERIALIZE_SECONDS;

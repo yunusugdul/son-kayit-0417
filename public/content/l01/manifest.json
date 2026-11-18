@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "geometry": "content/l01/geometry.glb",
+  "audio": [],
+  "note": "Named Blender graybox GLB retained for navigation/puzzle IDs; Stage 4 modular low-poly render art is authored in src/visual/Stage4Art.ts and generated at runtime."
+}

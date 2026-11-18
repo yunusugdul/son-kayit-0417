@@ -22,6 +22,10 @@ async function ready(page: Page): Promise<void> {
   await page.goto('/?debug=1');
   await expect(page.locator('#game-view canvas')).toBeVisible();
   await page.waitForFunction(() => !!window.__stage2);
+  // Stage 3 removes the demo cassette: pick it up from the real mailbox.
+  const [x,y] = await page.evaluate(() => window.__stage2!.project(-2.5,0.8,0.5));
+  await page.mouse.click(x,y);
+  await page.waitForFunction(() => window.__stage2?.cassette().includes('bell'),null,{timeout:10000});
 }
 async function clickWorld(page: Page, x: number, z: number): Promise<void> {
   const [px, py] = await page.evaluate(([a, b]) => window.__stage2!.project(a, 0, b), [x, z]);

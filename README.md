@@ -1,8 +1,8 @@
 # SON KAYIT: 04.17
 
-Three.js + TypeScript + Vite ile hazırlanan, web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Şu an Aşama 2 yankı çekirdeği prototipi** vardır: ortografik 3D postane, güvenli NavGraph/A* yürüme, etkileşim, süreli zil yankısı, SAFE_HOLD geçit güvenliği, WebGL2 kontrolü ve performans paneli. Tam L01 hikâyesi, gerçek kaset toplama ve checkpoint henüz yoktur.
+Three.js + TypeScript + Vite ile hazırlanan web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Aşama 4 / L01 Çalmayan Zil** sanat geliştirme dalında (Aşama 3 mekanikleri üzerinde): posta kutusundan kaset edinme, iki yankı izi, iç checkpoint, Efe kaydı, Türkçe altyazı, kayıt yönetimi ve menüler kodlandı. Render önizlemesi yayında; gerçek oyuncu, mobil FPS ve transfer kabul ölçümleri henüz gereklidir.
 
-> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§4.2–4.3**, **§17 AŞAMA 2** ve **§18**.
+> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§6.1**, **§9–10**, **§17 AŞAMA 4**.
 
 ## Geliştirme
 
@@ -33,7 +33,7 @@ Workflow ilk çalışmada, kilit dosyası yoksa npm ile `package-lock.json` üre
 
 ## Bilinçli kapsam sınırı
 
-Aşama 0'da **NavGraph/A\***, engeller, kaset, yankı, kayıt sistemi, hikâye akışı ve GLB yoktur. Tıkla-git **yalnızca boş başlangıç zemini için geçerli bir raycast prototipidir**. Aşama 1'de tüm hareket tek gezinme modeli üzerinden güvenli yola dönüştürülecektir.
+Aşama 0–2 tarihsel prototip aşamalarıdır; mevcut L01 sahnesinde nav/A*, iki ankraj ve kaset akışı birleştirilmiştir. L02–L06 oynanabilir değildir; final A/B henüz geliştirilmemiştir. Üretim cihazı FPS, ilk oyuncu süresi ve 5 kişilik bağımsız oyuncu testi tamamlanmamıştır.
 
 ## Dosyalar
 
@@ -54,6 +54,27 @@ Kontroller: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm r
 
 ## Aşama 2 — yankı çekirdeği
 
-Postane girişindeki **turkuaz yankı izine** yaklaşarak `Space` veya **Kaseti Çal** düğmesini kullan. Başlangıçta yalnız test amaçlı `bell` kaseti hazırdır; doğru mesafede çalınca silinmiş kapı 0,4 saniyede oluşur, 12 saniye açık kalır, ardından 0,6 saniyede kaybolur ve 1,5 saniyelik beklemeye girer. Tekrar Space süreyi yenilemez. Kapı geçidindeyken `SAFE_HOLD` süreyi durdurur; içeri girildiyse geri çıkış kalıcı güvenli hale gelir. Mobilde düğmeyle aynı işlem yapılabilir.
+Postane girişindeki **turkuaz yankı izine** yaklaşarak `Space` veya **Kaseti Çal** düğmesini kullan. Aşama 2 test gösteriminde `bell` kaseti hazırdı; doğru mesafede çalınca silinmiş kapı 0,4 saniyede oluşur, 12 saniye açık kalır, ardından 0,6 saniyede kaybolur ve 1,5 saniyelik beklemeye girer. Tekrar Space süreyi yenilemez. Kapı geçidindeyken `SAFE_HOLD` süreyi durdurur; içeri girildiyse geri çıkış kalıcı güvenli hale gelir. Mobilde düğmeyle aynı işlem yapılabilir.
 
 `EchoSystem` ve `EchoPassage` birim testleri ile `tests/e2e/stage2.spec.ts` tarayıcı testleri eklendi. Kayıt toplama, ikinci basamağın gerçek oyun akışı, checkpoint ve hikâye **Aşama 3** içindir. Ayrıntılı durum: [`docs/stage2-status.md`](docs/stage2-status.md).
+
+## Aşama 3 — Çalmayan Zil (geliştirme devam ediyor)
+
+`npm ci && npm run dev` sonrası ana menüden **Yeni Oyun** seç. Posta kutusundaki zil kasetini al, A izinde çal, postaneye gir, tezgâh notunu `E` ile oku, A yankısı soğuduktan sonra B izini etkinleştir ve üst raftaki Efe kaydına ulaş. Ses yalnız kullanıcı etkileşiminden sonra başlar; tüm anlatı Türkçe metin ve altyazıyla sunulur. Duraklat: `Esc`; ipucu: `H`; yankı: `Space`. Dokunmatik zemine dokunarak yürür ve ekrandaki büyük kaset düğmesini kullanır.
+
+- **Yerel ilerleme:** `localStorage` üzerinden güvenli checkpoint kaydı; Yeni Oyun/Devam Et; JSON dışa/içe aktarım; bozuk kayıtta geri dönüş. Depolama engelliyse oturum-içi kayıt ve uyarı.
+- **İçerik:** `public/content/l01/level.json` ve `manifest.json`; metinler `src/content/locales/tr.json` içindedir. V1 aksiyonları whitelist'le doğrulanır, dinamik betik yürütülmez.
+- **Test:** `npm run check` ve `npm run test:e2e`. Geliştirici tanılama: `?debug=1` (temiz oyun); `?debug=1&continue=1` (kaydedilen checkpoint).
+- **Durum ve açık kabul maddeleri:** [`docs/stage3-status.md`](docs/stage3-status.md).
+
+Aşama 3 henüz tamamlandı kabul edilmez: 8–12 dakika hedefi, 5 oyunculu kör test, mobil GPU testi ve güncel canlı yayın ölçülmelidir.
+
+## Aşama 4 — Kıyı postanesi sanat önizlemesi (draft)
+
+**Canlı adres:** https://son-kayit-0417-asama4.onrender.com/ — `feat/stage4-l01-art-polish` dalından ayrı Render Static Site. Aşama 3: https://son-kayit-0417-asama3.onrender.com/; mevcut `main` sitesi değiştirilmez.
+
+L01 maketine katmanlı kesit postane, baca/çatı, taş kaldırım ve instanced döşeme, fenerler, postane tabelası, posta kutusu ve kıyı aksesuarları eklendi. Ada 11 civarında parçalı düşük poli mesh, idle/walk/interact/record hareketleriyle canlandırıldı. Yankı turkuazı sadece aktif bulmaca alanlarına ayrıldı. Telifli ses dosyası olmadan hafif prosedürel sahil rüzgârı ambiyansı üretildi.
+
+**Ayarlar:** `Esc` → Görünüm ve ses → `Otomatik / Yüksek / Düşük` kalite (DPR ve kozmetik ayrıntılar), ambiyans açık/kapalı. Bulmaca collider'ları, yankılar, altyazılar ve kayıtlar kaliteden bağımsızdır. `?debug=1` üzerinde draw calls, triangles, FPS ve GPU bellek sayaçları görünür.
+
+**Kaynaklar:** `src/visual/Stage4Art.ts`, `docs/stage4-status.md`, `docs/asset-licenses.md`, `tests/e2e/stage4.spec.ts`. Henüz gerçek cihaz FPS veya kullanıcı testi doğrulaması yoktur; PR #2 draft olarak kalır.
