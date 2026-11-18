@@ -186,7 +186,7 @@ async function startStage1(
   ];
   const interactions = new InteractionSystem(nav, player, liveSolids, interactive);
   const input = new InputManager();
-  input.onInteract = () => interactions.interactNearest();
+  input.onInteract = () => { if (!paused) interactions.interactNearest(); };
   const fade = new OcclusionFade([
     meshMap.get('l01_wall_east')!, meshMap.get('l01_wall_north')!,
   ]);
@@ -264,11 +264,123 @@ async function startStage1(
   passage.apply(echo.snapshot);
   updateDoorAppearance();
 
-  let paused = document.hidden;
-  function playEcho(): void {
+  function required<T extends HTMLElement>(id: string): T {
+    const node = document.getElementById(id);
+    if (!node) throw new Error('Missing UI: ' + id);
+    return node as T;
+  }
+  const ui = {
+    menu: required<HTMLElement>('menu-overlay'),
+    pause: required<HTMLElement>('pause-overlay'),
+    complete: required<HTMLElement>('completion-overlay'),
+    menuNew: required<HTMLButtonElement>('menu-new'),
+    menuContinue: required<HTMLButtonElement>('menu-continue'),
+    menuControl: required<HTMLButtonElement>('menu-control'),
+    resume: required<HTMLButtonElement>('resume-control'),
+    pauseButton: required<HTMLButtonElement>('pause-control'),
+    hintButton: required<HTMLButtonElement>('hint-control'),
+    subtitleBox: required<HTMLElement>('subtitle-box'),
+    subtitle: required<HTMLElement>('subtitle'),
+    subtitleDismiss: required<HTMLButtonElement>('subtitle-dismiss'),
+    completeMenu: required<HTMLButtonElement>('completion-menu'),
+    tapeName: required<HTMLElement>('tape-name'),
+    export: required<HTMLButtonElement>('export-control'),
+    pauseExport: required<HTMLButtonElement>('pause-export'),
+    import: required<HTMLButtonElement>('import-control'),
+    importFile: required<HTMLInputElement>('import-file'),
+    storageWarning: required<HTMLElement>('storage-warning'),
+  };
+  const audio = new AudioManager();
+  const saves = new SaveManager();
+  const story = new StoryDirector(ui.subtitle);
+  let checkpoint: GameSave['checkpointId'] = 'cp_l01_start';
+  let completed = false;
+  let puzzle: PuzzleSystem;
+  let paused = true;
+  let hintIndex = 0;
+  let sinceHint = 99;
+  function refreshSaveWarning(): void {
+    ui.storageWarning.hidden = !saves.storageFailed;
+    if (saves.storageFailed) ui.storageWarning.textContent = translated('ui.saveUnavailable');
+  }
+  function persist(): void {
+    const save: GameSave = {
+      schemaVersion:1, levelId:'l01_post_office',checkpointId:checkpoint,
+      flags:[...puzzleFlags],tapes:[...ownedTapes],
+      completedLevels:completed ? ['l01_post_office'] : [],
+      savedAt:new Date().toISOString(),
+    };
+    saves.save(save);
+    refreshSaveWarning();
+  }
+  function applyAction(action: GameAction): void {
+    switch (action.type) {
+      case 'setFlag': puzzleFlags.add(action.flag); break;
+      case 'grantTape':
+        ownedTapes.add(action.tapeId);
+        audio.play('pickup');
+        tell('Zil kaseti alındı. İz A’ya yaklaş ve Space tuşuna bas.');
+        break;
+      case 'checkpoint':
+        if (action.id !== 'cp_l01_start' && action.id !== 'cp_l01_interior')
+          throw new Error('Unknown checkpoint');
+        checkpoint = action.id;
+        passage.latch();
+        audio.play('checkpoint');
+        break;
+      case 'story':
+        story.show(action.key);
+        ui.subtitleBox.hidden = false;
+        audio.play('story');
+        break;
+      case 'completeLevel':
+        completed = true;
+        ui.complete.hidden = false;
+        paused = true;
+        audio.play('checkpoint');
+        break;
+      case 'showMessage': tell(translated(action.key)); break;
+      case 'activateEcho': playAnchor(action.anchorId); break;
+      case 'setNavLink': nav.setLinkEnabled(action.linkId,action.enabled); break;
+      case 'setObjectVisible': {
+        const mesh = meshMap.get(action.objectId);
+        if (!mesh) throw new Error('Unknown scene object');
+        mesh.visible = action.visible; break;
+      }
+    }
+  }
+  function begin(save: GameSave): void {
+    echo.reset();
+    passage.reset();
+    puzzleFlags.clear(); for (const flag of save.flags) puzzleFlags.add(flag);
+    ownedTapes.clear(); for (const tape of save.tapes) ownedTapes.add(tape);
+    checkpoint = save.checkpointId;
+    completed = save.completedLevels.includes('l01_post_office');
+    const spawn = level.checkpoints.find(cp => cp.id === checkpoint);
+    if (!spawn) throw new Error('Missing checkpoint in level');
+    player.resetTo(spawn.position[0],spawn.position[2]);
+    if (puzzleFlags.has('l01_interior_reached')) passage.latch();
+    puzzle = new PuzzleSystem(level.puzzles,puzzleFlags,{apply:applyAction});
+    ui.menu.hidden = true;
+    ui.pause.hidden = true;
+    ui.complete.hidden = !completed;
+    ui.subtitleBox.hidden = true;
+    hintIndex = 0; sinceHint = 99;
+    paused = document.hidden || completed;
+    input.clear();
+    accumulator = 0; last = performance.now();
+    refreshSaveWarning();
+    if (!completed && !puzzleFlags.has('l01_tape_found')) {
+      story.show('story.l01.intro'); ui.subtitleBox.hidden = false;
+    }
+    updateDoorAppearance(); updateEchoHud();
+  }
+  function playAnchor(anchorId: string): void {
     if (paused) return;
-    const distance = Math.hypot(player.position.x - anchorSpot.x, player.position.z - anchorSpot.z);
-    const result = echo.activate('l01_echo_a', ownedTapes.has('bell') ? 'bell' : null, distance, puzzleFlags);
+    if (!ownedTapes.has('bell')) { tell(translated('ui.tapeNeeded')); audio.play('error'); return; }
+    const position = anchorId === 'l01_echo_b' ? anchorBSpot : anchorSpot;
+    const distance = Math.hypot(player.position.x - position.x,player.position.z - position.z);
+    const result = echo.activate(anchorId,'bell',distance,puzzleFlags);
     const notices: Record<string, string> = {
       started: 'Zil kaydı çalıyor… unutulmuş kapı ortaya çıkıyor.',
       'out-of-range': 'Turkuaz yankı izine yaklaş (en fazla 1,6 m).',
@@ -280,24 +392,38 @@ async function startStage1(
       used: 'Bu yankı daha önce kullanıldı.',
       'unknown-anchor': 'Yankı noktası tanınmadı.',
     };
-    tell(notices[result]);
-    if (result === 'started') window.dispatchEvent(new CustomEvent('game:echo', { detail: { anchorId: 'l01_echo_a', tapeId: 'bell' } }));
+    tell(result === 'started' && anchorId === 'l01_echo_b' ? 'Basamaklar hatırlanıyor… üst rafa çık.' : notices[result]);
+    if (result === 'started') {
+      audio.play('echo');
+      window.dispatchEvent(new CustomEvent('game:echo', { detail: { anchorId, tapeId: 'bell' } }));
+    } else audio.play('error');
+  }
+  function playEcho(): void {
+    void audio.unlock();
+    const a = Math.hypot(player.position.x - anchorSpot.x,player.position.z - anchorSpot.z);
+    const b = Math.hypot(player.position.x - anchorBSpot.x,player.position.z - anchorBSpot.z);
+    const anchorId = puzzleFlags.has('l01_note_read') && b < a ? 'l01_echo_b' : 'l01_echo_a';
+    playAnchor(anchorId);
   }
   echoButton!.addEventListener('click', playEcho);
   input.onPlayEcho = playEcho;
   function updateEchoHud(): void {
     const state = echo.snapshot;
     const labels: Record<typeof state.phase, string> = {
-      inactive: 'İz A’ya yaklaş · kapı silik',
-      materializing: 'Kapı hatırlanıyor…',
-      active: `Geçit açık · ${Math.ceil(state.secondsRemaining)} sn`,
-      safe_hold: 'Güvenli bekleme · geçit korunuyor',
+      inactive: !ownedTapes.has('bell') ? 'Posta kutusunda kaset ara' :
+        puzzleFlags.has('l01_note_read') ? 'İz B: üst raf için zil kasetini çal' :
+        passage.isLatched ? 'İçerideki tezgâh notunu oku' : 'İz A: kapıyı hatırla',
+      materializing: 'Mekân hatırlanıyor…',
+      active: `Yankı açık · ${Math.ceil(state.secondsRemaining)} sn`,
+      safe_hold: 'Güvenli bekleme · dayanak korunuyor',
       fading: 'Yankı sönüyor…',
       cooldown: `Bekle · ${Math.ceil(state.secondsRemaining)} sn`,
     };
-    const label = passage.isLatched && state.phase === 'inactive' ? 'Geçit kalıcı olarak güvenli' : labels[state.phase];
+    const label = passage.isLatched && state.phase === 'inactive' &&
+      !puzzleFlags.has('l01_note_read') ? 'Geçit kalıcı olarak güvenli · notu oku' : labels[state.phase];
     if (echoState!.textContent !== label) echoState!.textContent = label;
-    echoButton!.disabled = false; // Repeated Space is harmless, with an explicit explanation.
+    ui.tapeName.textContent = ownedTapes.has('bell') ? 'Zil / bell' : 'Kaset henüz bulunmadı';
+    echoButton!.disabled = paused || !ownedTapes.has('bell');
   }
 
   let messageElapsed = 0;
@@ -308,8 +434,12 @@ async function startStage1(
   }
   interactions.onFeedback = tell;
   interactions.onEvent = ({ id, label }) => {
+    if (paused) return;
     window.dispatchEvent(new CustomEvent('game:interact', { detail: { interactId: id } }));
-    tell(id === 'l01_door_main' ? (nav.links.get(ENTRY_LINK_ID)?.enabled ? 'Kapı geçilebilir; içeride güvenli çıkış var.' : 'Kapı kayıp. Turkuaz izde zil kasetini çal.') : `${label} incelendi. (Etkileşim olayı)`);
+    if (puzzle.emit('interactId',id)) { persist(); return; }
+    if (id === 'l01_door_main') tell(nav.links.get(ENTRY_LINK_ID)?.enabled ?
+      'Kapı geçilebilir; içeride güvenli çıkış var.' : 'Kapı kayıp. Turkuaz izde zil kasetini çal.');
+    else tell(`${label} incelendi.`);
   };
 
   const hoverMaterials = new Map<string, { material: THREE.MeshStandardMaterial; emissive: THREE.Color }>();
@@ -338,7 +468,7 @@ async function startStage1(
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1,
       -((event.clientY - rect.top) / rect.height * 2 - 1));
     raycaster.setFromCamera(pointer, camera);
-    return raycaster.intersectObjects([ground, ...interactive.map(item => item.mesh)], true);
+    return raycaster.intersectObjects([ground, ...interactive.map(item => item.mesh), ...stairs], true);
   }
   renderer.domElement.addEventListener('pointermove', event => {
     if (event.pointerType === 'touch') return;
@@ -349,6 +479,7 @@ async function startStage1(
 
   renderer.domElement.addEventListener('pointerdown', event => {
     if (paused || event.button !== 0) return;
+    void audio.unlock();
     const allHits = hits(event);
     const item = allHits.map(hit => interactions.pick(hit.object)).find(Boolean);
     if (item) {
@@ -357,16 +488,18 @@ async function startStage1(
       interactions.interactOrApproach(item);
       return;
     }
-    // Raycast ground, not an infinite plane; never teleport to unreachable nodes.
-    const surface = allHits.find(hit => hit.object === ground && Math.abs(hit.point.y) < 0.025);
+    // Touch and mouse use the same raycast and nav; elevated support has a separate floor index.
+    const upper = allHits.find(hit => stairs.includes(hit.object as THREE.Mesh) && hit.object.visible);
+    const surface = upper ?? allHits.find(hit => hit.object === ground && Math.abs(hit.point.y) < 0.025);
     if (!surface) return;
-    if (!player.moveTo(surface.point.x, surface.point.z)) {
+    const floor = upper ? 1 : 0;
+    if (!player.moveTo(surface.point.x, surface.point.z,undefined,floor)) {
       marker.visible = false;
       tell('Buraya giden açık bir yol yok. Başka bir nokta seç.');
       return;
     }
-    const target = nav.contains(surface.point.x, surface.point.z)!;
-    marker.position.set(target.x, 0.035, target.z);
+    const target = nav.contains(surface.point.x, surface.point.z,floor)!;
+    marker.position.set(target.x, target.worldY + 0.035, target.z);
     marker.visible = player.movingToTarget;
   });
 
