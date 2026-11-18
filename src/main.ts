@@ -537,8 +537,9 @@ async function startStage1(
   function resize(): void {
     const width = Math.max(1, container.clientWidth), height = Math.max(1, container.clientHeight);
     const aspect = width / height;
-    // Preserve floor readability when portrait screens have a narrow horizontal frustum.
-    const worldHeight = Math.max(ORTHO_HEIGHT, 10 / Math.max(0.5, aspect));
+    // Fit the full 10x10 isometric diamond on portrait screens; the old horizontal
+    // frustum clipped Ada and the mailbox on 390px phones.
+    const worldHeight = Math.max(ORTHO_HEIGHT, 15.6 / Math.max(0.38, aspect));
     camera.left = -worldHeight * aspect / 2;
     camera.right = worldHeight * aspect / 2;
     camera.top = worldHeight / 2;
