@@ -169,8 +169,8 @@ async function startStage1(
     scene.add(mesh);
     return mesh;
   }
-  const counter = block('l01_counter',2.85,0.45,-1.9,1.15,0.9,0.5,'#977b64');
-  const noteMesh = block('l01_note_counter',2.85,0.95,-1.9,0.42,0.05,0.34,'#f5d9a0');
+  const counter = block('l01_counter',2.85,0.45,-1.0,1.15,0.9,0.5,'#977b64');
+  const noteMesh = block('l01_note_counter',2.85,0.95,-1.0,0.42,0.05,0.34,'#f5d9a0');
   const stairA = block('l01_stair_a',2.5,1.31,-1.5,0.98,0.18,0.98,'#72c8b5');
   const stairB = block('l01_stair_b',3.5,1.31,-1.5,0.98,0.18,0.98,'#72c8b5');
   const tapeMesh = block('l01_efe_tape',3.5,1.57,-1.5,0.38,0.24,0.25,'#e1c281');
@@ -181,7 +181,7 @@ async function startStage1(
     { id: 'l01_mailbox', label: 'Posta kutusu', mesh: meshMap.get('l01_mailbox')!, position: new THREE.Vector3(-2.5, 0, 0.5) },
     { id: 'l01_door_main', label: 'Kayıp giriş', mesh: meshMap.get('l01_door_main')!, position: new THREE.Vector3(1.55, 0, -0.5) },
     { id: 'l01_sign', label: 'Postane tabelası', mesh: meshMap.get('l01_sign')!, position: new THREE.Vector3(1.6, 0, 1.4) },
-    { id: 'l01_note_counter', label: 'Tezgâhtaki not', mesh: noteMesh, position: new THREE.Vector3(2.85,0,-1.9) },
+    { id: 'l01_note_counter', label: 'Tezgâhtaki not', mesh: noteMesh, position: new THREE.Vector3(2.85,0,-1.0) },
     { id: 'l01_efe_tape', label: "Efe'nin kaseti", mesh: tapeMesh, position: new THREE.Vector3(3.5,1.4,-1.5), floorIndex: 1 },
   ];
   const interactions = new InteractionSystem(nav, player, liveSolids, interactive);

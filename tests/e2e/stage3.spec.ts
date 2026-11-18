@@ -37,6 +37,10 @@ async function inside(page:Page):Promise<void> {
   await page.waitForFunction(()=>window.__stage3?.echo().phase==='active');
   await clickAt(page,2.5,0,-0.5);
   await page.waitForFunction(()=>window.__stage3?.checkpoint()==='cp_l01_interior',null,{timeout:9000});
+  await page.waitForFunction(()=>{
+    const [x,,z]=window.__stage3!.position();
+    return x>2.45 && Math.abs(z+.5)<0.15;
+  },null,{timeout:4000});
 }
 test('main menu starts a new game and collected bell is saved', async({page})=>{
   await page.goto('/');
@@ -52,7 +56,7 @@ test('main menu starts a new game and collected bell is saved', async({page})=>{
 test('L01 A echo, interior note, B echo, upper shelf and Efe completion',async({page})=>{
   await ready(page);
   await inside(page);
-  await clickAt(page,2.85,0.95,-1.9);
+  await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>window.__stage3?.flags().includes('l01_note_read'),null,{timeout:6000});
   await page.keyboard.press('Space');
   await page.waitForFunction(()=>window.__stage3?.echo().groupId==='l01_stairs' && window.__stage3?.echo().phase==='active',null,{timeout:3000});
@@ -65,7 +69,7 @@ test('L01 A echo, interior note, B echo, upper shelf and Efe completion',async({
 test('reload restores interior checkpoint, bell and the second-anchor note',async({page})=>{
   await ready(page);
   await inside(page);
-  await clickAt(page,2.85,0.95,-1.9);
+  await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>window.__stage3?.flags().includes('l01_note_read'),null,{timeout:6000});
   await page.goto('/?debug=1&continue=1');
   await page.waitForFunction(()=>!!window.__stage3);
