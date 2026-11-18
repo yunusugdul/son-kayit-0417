@@ -2,6 +2,9 @@
 Run: blender --background --factory-startup --python source-assets/levels/generate-graybox-blender.py
 The input tuples are Three.js (X,Y,Z); Blender uses (X,-Z,Y) before glTF Y-up export.
 """
+import sys
+# Ubuntu Blender 4.0 may omit distro Python packages from its embedded sys.path.
+sys.path.append('/usr/lib/python3/dist-packages')
 import bpy
 from pathlib import Path
 

@@ -18,9 +18,12 @@ jobs:
       - name: Install Blender exporter
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y blender
+          sudo apt-get install -y blender python3-numpy
       - name: Generate geometry.glb from Blender
-        run: blender --background --factory-startup --python source-assets/levels/generate-graybox-blender.py
+        run: |
+          rm -f public/content/l01/geometry.glb
+          blender --background --factory-startup --python-exit-code 1 --python source-assets/levels/generate-graybox-blender.py
+          test -s public/content/l01/geometry.glb
       - name: Verify glTF IDs
         run: node scripts/check-geometry.mjs
       - name: Commit generated GLB
