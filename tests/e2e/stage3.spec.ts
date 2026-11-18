@@ -54,10 +54,13 @@ test('main menu starts a new game and collected bell is saved', async({page})=>{
   await expect(page.locator('#game-view canvas')).toBeVisible();
 });
 test('L01 A echo, interior note, B echo, upper shelf and Efe completion',async({page})=>{
+  test.setTimeout(50_000);
   await ready(page);
   await inside(page);
   await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>window.__stage3?.flags().includes('l01_note_read'),null,{timeout:6000});
+  // Stage 2 permits one active echo group. A must fade/cool down before B can start.
+  await page.waitForFunction(()=>window.__stage3?.echo().phase==='inactive',null,{timeout:20000});
   await page.keyboard.press('Space');
   await page.waitForFunction(()=>window.__stage3?.echo().groupId==='l01_stairs' && window.__stage3?.echo().phase==='active',null,{timeout:3000});
   await clickAt(page,3.5,1.57,-1.5);
