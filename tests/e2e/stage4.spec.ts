@@ -9,6 +9,7 @@ declare global {
       drawCalls(): number;
       gpuMemory(): [number, number];
       viewport(): [number, number];
+      project(x: number, y: number, z: number): [number, number];
       cassette(): string;
     };
   }
@@ -34,6 +35,9 @@ test('L01 art renders with low-poly budget; desktop and mobile screenshots', asy
   await page.waitForTimeout(400);
   await expect(page.locator('#echo-control')).toBeVisible();
   await expect(page.locator('#pause-control')).toBeVisible();
+  const [adaX] = await page.evaluate(() => window.__stage4!.project(-3.5, .75, 2.5));
+  expect(adaX).toBeGreaterThan(25);
+  expect(adaX).toBeLessThan(365);
   await page.screenshot({ path: 'artifacts/stage4-mobile-390.png', fullPage: true });
 });
 test('quality and ambience controls are accessible and survive a reload', async ({ page }) => {
