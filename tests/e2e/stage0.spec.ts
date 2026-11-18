@@ -132,9 +132,16 @@ test('dar mobil görünüm ve dokunma hedefi çalışır', async ({ page }) => {
   await prepare(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   const start = await coordinate(page);
-  const canvas = page.locator('#game-view canvas');
-  const bounds = await canvas.boundingBox();
-  await page.mouse.click(bounds!.x + bounds!.width * 0.63, bounds!.y + bounds!.height * 0.52);
+  // Tap a known accessible street cell rather than a screen percentage:
+  // Stage 4's portrait camera must fit the whole coastal diorama.
+  const target = await page.evaluate(() => {
+    const api = (window as typeof window & {
+      __stage1?: { project(x: number, y: number, z: number): [number, number] };
+    }).__stage1;
+    if (!api) throw new Error('Stage 1 projection missing');
+    return api.project(-2.5, 0, 2.5);
+  });
+  await page.mouse.click(target[0], target[1]);
   await page.waitForTimeout(260);
   const end = await coordinate(page);
   expect(Math.hypot(end![0] - start![0], end![2] - start![2])).toBeGreaterThan(0.1);
