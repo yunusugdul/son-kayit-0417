@@ -5,7 +5,7 @@ import type { EchoSnapshot } from '../gameplay/EchoSystem';
 /**
  * L01's reusable low-poly art kit. Collision/navigation remains owned by Stage1Layout:
  * these decorative meshes never alter a puzzle collider or navigation link.
- * Geometry is combined by palette material; no textures, shadow maps, or external assets.
+ * Geometry is combined by palette material; no downloaded textures, shadow maps, or external assets.
  */
 const C = {
   stone: '#75848c', paving: '#9a9c91', grout: '#647c78', ivory: '#d9c9aa',
@@ -109,7 +109,7 @@ class AdaModel {
     const shadow = new THREE.Mesh(new THREE.CircleGeometry(.34, 20),
       new THREE.MeshBasicMaterial({ color: '#172f38', transparent: true, opacity: .37, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = .015;
+    shadow.position.y = .045;
     this.root.add(shadow);
     this.body.position.y = .78;
     this.root.add(this.body);
@@ -190,6 +190,7 @@ function postaneSign(): THREE.Group {
   kit.finish(group, 'PROP_SignBoard');
   const label = new THREE.Mesh(new THREE.PlaneGeometry(1.60, .43),
     new THREE.MeshBasicMaterial({ map: signTexture(), transparent: true, depthWrite: false }));
+  label.name = 'PROP_PostaneSign_Label';
   label.position.set(.65, 2.025, .155);
   group.add(label);
   return group;
@@ -446,7 +447,7 @@ export function createL01Art(
   return {
     character: character.root,
     mailboxTarget: mail,
-    signTarget: sign,
+    signTarget: sign.getObjectByName('PROP_PostaneSign_Label')!,
     setQuality,
     update,
     interact: () => character.interact(),
