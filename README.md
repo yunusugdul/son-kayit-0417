@@ -54,4 +54,4 @@ WASD/ok tuşlarıyla kamera yönünde yürü; zemine tıklayarak dört yönlü A
 
 Kontrol: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm run test:e2e`.
 
-`public/content/l01/geometry.glb` adlandırılmış geçici graybox'tır; kalıcı Blender export yapılmadı. Ayrıntı `docs/stage1-status.md` içinde.
+`public/content/l01/geometry.glb` Blender 4.0.2 ile yeniden üretilmiş, adı doğrulanan geçici graybox modelidir. Blender kaynak betiği `source-assets/levels/generate-graybox-blender.py`; ayrıntı `docs/stage1-status.md` içinde.

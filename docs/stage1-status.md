@@ -1,6 +1,6 @@
 # Aşama 1 — Gezinme ve etkileşim
 
-Durum: uygulama ve kabul testleri GitHub Actions ile kontrol edilir. Aşama 2 başlamadı.
+Durum: Aşama 1 kodu, testleri ve Blender GLB üretimi GitHub Actions ile doğrulandı. Aşama 2 başlamadı.
 
 ## Uygulanan sınırlar
 
@@ -11,7 +11,7 @@ Durum: uygulama ve kabul testleri GitHub Actions ile kontrol edilir. Aşama 2 ba
 - Posta kutusu, kapalı kapı ve tabelaya uzaktan tıklayınca ulaşılabilir yaklaşma noktası.
 - `E` yakın etkileşim, hover/vurgu, `game:interact` olayı; bu aşamada envanter/bulmaca değişikliği yok.
 - Model GLB ID'leri yükleme sırasında ve CI'da doğrulanır. `OcclusionFade` yalnız işaretli ön duvarlarda etkin.
-- Gerçek cihaz performansı ve Blender içinden doğrudan GLB export'u yerel olarak doğrulanmadı. Şu anki `geometry.glb` Python `trimesh` ile üretilmiş, geometri adı taşıyan **geçici graybox** modelidir. Kalıcı sanat varlıkları Blender üzerinden dışa aktarılacaktır.
+- `geometry.glb`, Blender 4.0.2 üzerinden `source-assets/levels/generate-graybox-blender.py` ile üretildi. Otomatik Blender dışa aktarma çalışması: https://github.com/yunusugdul/son-kayit-0417/actions/runs/44205635732. Kaynak betik kod olarak saklanır; görünüm henüz **geçici graybox** ve kalıcı sanat varlığı değildir. `generate-graybox.py` yalnızca alternatif yerel önizleme üreticisidir. Gerçek cihaz GPU/FPS doğrulaması yapılmadı.
 
 ## Otomatik doğrulama
 
