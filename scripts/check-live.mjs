@@ -1,8 +1,9 @@
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
-// Verify the live Render site serves Stage 1 HTML and the exact current Blender GLB.
-const base = 'https://son-kayit-0417.onrender.com/';
+// Verify the Stage 4 Render preview serves the live HTML, GLB and asset bundles.
+const base = (process.env.GAME_LIVE_URL ?? 'https://son-kayit-0417-asama4.onrender.com/').replace(/\/?$/, '/');
+const expectedStage = process.env.GAME_STAGE ?? 'AŞAMA 04';
 const expectedGlb = await readFile('public/content/l01/geometry.glb');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const expectedHash = hash(expectedGlb);
@@ -17,11 +18,11 @@ let latest = false;
 let failure = '';
 for (let attempt = 0; attempt < 3; attempt++) {
   try {
-    html = await (await get(base + '?stage1=' + attempt)).text();
-    if (!html.includes('SON KAYIT') || !html.includes('AŞAMA 01')) {
-      throw new Error('Live HTML is not yet Stage 1.');
+    html = await (await get(base + '?stage4=' + attempt)).text();
+    if (!html.includes('SON KAYIT') || !html.includes(expectedStage)) {
+      throw new Error('Live HTML is not yet ' + expectedStage);
     }
-    const liveGlb = Buffer.from(await (await get(new URL('content/l01/geometry.glb?stage1=' + attempt, base))).arrayBuffer());
+    const liveGlb = Buffer.from(await (await get(new URL('content/l01/geometry.glb?stage4=' + attempt, base))).arrayBuffer());
     if (hash(liveGlb) !== expectedHash) {
       throw new Error(`Live GLB checksum mismatch (expected ${expectedGlb.length}, got ${liveGlb.length} bytes)`);
     }
@@ -32,7 +33,7 @@ for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 3_000));
   }
 }
-if (!latest) throw new Error('Render did not serve this Stage 1 revision: ' + failure);
+if (!latest) throw new Error('Render did not serve ' + expectedStage + ': ' + failure);
 
 const links = [...html.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g)].map(m => new URL(m[1], base).href);
 if (!links.some(x => x.endsWith('.js')) || !links.some(x => x.endsWith('.css'))) {
@@ -45,6 +46,6 @@ for (const url of links) {
 }
 await mkdir('artifacts', { recursive: true });
 await writeFile('artifacts/live-http-smoke.json', JSON.stringify({
-  base, stage: '01', status: 200, modelBytes: expectedGlb.length, modelSha256: expectedHash, assets,
+  base, stage: expectedStage, status: 200, modelBytes: expectedGlb.length, modelSha256: expectedHash, assets,
 }, null, 2));
-console.log('Render serves Stage 1 HTML, exact Blender GLB and JS/CSS:', expectedGlb.length, assets.length);
+console.log('Render serves Stage 4 HTML, exact navigation GLB and JS/CSS:', expectedGlb.length, assets.length);
