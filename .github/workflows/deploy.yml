@@ -1,4 +1,4 @@
-name: Stage 1 - Navigation, browser smoke and Pages
+name: Stage 2 - Echo safety, browser smoke and Pages
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: stage1-browser-smoke-and-pages
+  group: stage2-echo-browser-smoke-and-pages
   cancel-in-progress: true
 
 jobs:
@@ -50,15 +50,15 @@ jobs:
         run: npm run check
       - name: Inspect statically served file sizes
         run: npm run report:sizes
-      - name: Verify Stage 1 is deployed on Render (non-blocking publication check)
+      - name: Check Render public URL (non-blocking; version is not asserted)
         id: live
         continue-on-error: true
         run: npm run check:live
-      - name: Report stale Render deployment
+      - name: Report unresolved Render publication
         if: steps.live.outcome == 'failure'
         run: |
-          echo "::warning::Render still serves an older site revision. Stage 1 build and browser tests remain independent."
-          echo "### Render deployment pending: live Stage 1 not verified" >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::Render may serve an older site revision. Stage 2 build and browser tests remain independent."
+          echo "### Render deployment pending: live Stage 2 not verified" >> "$GITHUB_STEP_SUMMARY"
           echo "GitHub source and browser tests are valid; update Render service deployment separately." >> "$GITHUB_STEP_SUMMARY"
       - name: Confirm runner Chrome installation
         run: google-chrome --version
@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: stage1-evidence
+          name: stage2-evidence
           path: |
             artifacts/
             playwright-report/

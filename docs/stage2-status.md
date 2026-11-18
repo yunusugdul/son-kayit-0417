@@ -24,3 +24,10 @@ Yerel birim testi: `node --experimental-strip-types --test tests/unit/*.test.ts`
 CI: `npm run check` (asset, birim testler, tip denetimi, production build) ardından `npm run test:e2e` (Playwright).
 
 Gerçek cihaz 30 FPS testi henüz yoktur. Aşama 3'te B'nin fiziksel basamakları, `l01_note_read` bayrağı, save/checkpoint ve ses/hikâye ayrı işlenecektir.
+
+## GitHub Actions doğrulaması — 18 Kasım 2026
+
+- [Aşama 2 koduyla başarılı CI çalışması](https://github.com/yunusugdul/son-kayit-0417/actions/runs/44209276854): 16 birim testi, 11 Playwright tarayıcı testi; TypeScript, Vite derleme ve asset doğrulaması geçti.
+- Tarayıcı testleri: yankıyı sadece yakınken başlatma, tekrar Space ile sürenin yenilenmemesi, kapının açılıp geçilebilir olması, süre sonunda iç mekândan güvenli çıkış, sekme gizlendiğinde sayacın durması.
+- GitHub Pages otomatik etkinleştirmesi Resource not accessible by integration uyarısı verdiğinden Pages dağıtımı gerçekleşmedi; kaynak ve CI bundan bağımsızdır.
+- Render'da Aşama 2 canlı yayını doğrulanmadı. Bu çalışmada bir Render deploy'u tetiklenmedi.
