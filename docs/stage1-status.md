@@ -23,3 +23,7 @@ Durum: Aşama 1 kodu, testleri ve Blender GLB üretimi GitHub Actions ile doğru
 ## Aşama 2'ye bırakılanlar
 
 Yankı kaset mantığı, `EchoSystem`, SAFE_HOLD, platformlar, checkpoint, senaryo ve kayıt sistemi **uygulanmadı**. Bunlar ayrı kilometre taşlarıdır.
+
+## Canlı yayın durumu
+
+GitHub Aşama 1 derlemesi ve gerçek Chrome otomasyon testleri başarılıdır. Ancak 18 Kasım 2026'da yapılan sürüm/hash kontrolünde `https://son-kayit-0417.onrender.com/` hâlâ **Aşama 0 HTML'ini** sunuyordu; Aşama 1'in Render dağıtımı doğrulanmış değildir. `npm run check:live` aynı Blender GLB'nin CDN'de bulunup bulunmadığını kontrol eder. Yayın testi CI içinde **uyarı**, kod derlemesi ve tarayıcı testleri ise **zorunlu** olmaya devam eder. Render servisinin güncel GitHub commit'ini deploy etmesi gerekir; Render bağlantısında workspace seçimi olmadan servis ayarı değiştirilmemiştir.

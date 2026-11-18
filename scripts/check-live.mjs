@@ -15,7 +15,7 @@ async function get(url) {
 let html = '';
 let latest = false;
 let failure = '';
-for (let attempt = 0; attempt < 10; attempt++) {
+for (let attempt = 0; attempt < 3; attempt++) {
   try {
     html = await (await get(base + '?stage1=' + attempt)).text();
     if (!html.includes('SON KAYIT') || !html.includes('AŞAMA 01')) {
@@ -29,7 +29,7 @@ for (let attempt = 0; attempt < 10; attempt++) {
     break;
   } catch (err) {
     failure = String(err);
-    if (attempt < 9) await new Promise(resolve => setTimeout(resolve, 10_000));
+    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 3_000));
   }
 }
 if (!latest) throw new Error('Render did not serve this Stage 1 revision: ' + failure);
