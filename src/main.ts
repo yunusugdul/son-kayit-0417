@@ -616,7 +616,11 @@ async function startStage1(
   });
   ui.menuContinue.disabled = !saves.load();
   refreshSaveWarning();
-  if (showDebug) newGame(); // Preserve Stage 0/1 scripted movement in debug harness.
+  if (showDebug) {
+    const debugSaved = new URLSearchParams(window.location.search).has('continue') ? saves.load() : null;
+    if (debugSaved) begin(debugSaved);
+    else newGame(); // Stage 0/1 movement smoke tests start from a clean state.
+  }
 
 
   const api: Stage3Debug = {
