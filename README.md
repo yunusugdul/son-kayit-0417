@@ -1,8 +1,8 @@
 # SON KAYIT: 04.17
 
-Three.js + TypeScript + Vite ile hazırlanan web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Aşama 3 / L01 Çalmayan Zil** geliştirme dalında: posta kutusundan kaset edinme, iki yankı izi, iç checkpoint, Efe kaydı, Türkçe altyazı, kayıt yönetimi ve menüler kodlandı. Çıkış için kör oyuncu testi, gerçek mobil ölçüm ve yayın doğrulaması halen gereklidir.
+Three.js + TypeScript + Vite ile hazırlanan web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Aşama 4 / L01 Çalmayan Zil** sanat geliştirme dalında (Aşama 3 mekanikleri üzerinde): posta kutusundan kaset edinme, iki yankı izi, iç checkpoint, Efe kaydı, Türkçe altyazı, kayıt yönetimi ve menüler kodlandı. Render önizlemesi yayında; gerçek oyuncu, mobil FPS ve transfer kabul ölçümleri henüz gereklidir.
 
-> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§4.2–4.3**, **§6.1**, **§17 AŞAMA 3** ve **§18**.
+> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§6.1**, **§9–10**, **§17 AŞAMA 4**.
 
 ## Geliştirme
 
@@ -68,3 +68,13 @@ Postane girişindeki **turkuaz yankı izine** yaklaşarak `Space` veya **Kaseti 
 - **Durum ve açık kabul maddeleri:** [`docs/stage3-status.md`](docs/stage3-status.md).
 
 Aşama 3 henüz tamamlandı kabul edilmez: 8–12 dakika hedefi, 5 oyunculu kör test, mobil GPU testi ve güncel canlı yayın ölçülmelidir.
+
+## Aşama 4 — Kıyı postanesi sanat önizlemesi (draft)
+
+**Canlı adres:** https://son-kayit-0417-asama4.onrender.com/ — `feat/stage4-l01-art-polish` dalından ayrı Render Static Site. Aşama 3: https://son-kayit-0417-asama3.onrender.com/; mevcut `main` sitesi değiştirilmez.
+
+L01 maketine katmanlı kesit postane, baca/çatı, taş kaldırım ve instanced döşeme, fenerler, postane tabelası, posta kutusu ve kıyı aksesuarları eklendi. Ada 11 civarında parçalı düşük poli mesh, idle/walk/interact/record hareketleriyle canlandırıldı. Yankı turkuazı sadece aktif bulmaca alanlarına ayrıldı. Telifli ses dosyası olmadan hafif prosedürel sahil rüzgârı ambiyansı üretildi.
+
+**Ayarlar:** `Esc` → Görünüm ve ses → `Otomatik / Yüksek / Düşük` kalite (DPR ve kozmetik ayrıntılar), ambiyans açık/kapalı. Bulmaca collider'ları, yankılar, altyazılar ve kayıtlar kaliteden bağımsızdır. `?debug=1` üzerinde draw calls, triangles, FPS ve GPU bellek sayaçları görünür.
+
+**Kaynaklar:** `src/visual/Stage4Art.ts`, `docs/stage4-status.md`, `docs/asset-licenses.md`, `tests/e2e/stage4.spec.ts`. Henüz gerçek cihaz FPS veya kullanıcı testi doğrulaması yoktur; PR #2 draft olarak kalır.
