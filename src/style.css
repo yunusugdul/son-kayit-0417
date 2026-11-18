@@ -57,3 +57,7 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
   .scene-meta { bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; } }
+
+.feedback { position: absolute; z-index: 3; left: 50%; top: 77%; transform: translateX(-50%); width: max-content; max-width: min(90vw, 540px); text-align: center; padding: 12px 18px; border-radius: 9px; background: rgba(18,37,45,.96); border: 1px solid #89b8b4; font-size: 13px; color: #fff4da; pointer-events: none; }
+.interaction-prompt { position: absolute; z-index: 3; left: 50%; top: 68%; transform: translateX(-50%); pointer-events: none; background: rgba(10,32,37,.88); border-radius: 6px; color: #b9eee0; padding: 8px 12px; font-size: 13px; text-align: center; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width:650px) { .feedback {top: 64%;} .interaction-prompt {top: 56%;} }

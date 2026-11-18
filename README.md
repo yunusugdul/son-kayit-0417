@@ -35,9 +35,9 @@ npm run check:live
 
 Workflow ilk çalışmada, kilit dosyası yoksa npm ile `package-lock.json` üretip repo'ya commit eder. Sonraki çalışmalarda `npm ci` kullanılır; sürüm güncellemesi ayrı PR ile yapılır. Kullanıcı/test verileri hiçbir sunucuya gönderilmez.
 
-## Bilinçli kapsam sınırı
+## Aşama 0'dan Aşama 1'e geçiş
 
-Aşama 0'da **NavGraph/A\***, engeller, kaset, yankı, kayıt sistemi, hikâye akışı ve GLB yoktur. Tıkla-git **yalnızca boş başlangıç zemini için geçerli bir raycast prototipidir**. Aşama 1'de tüm hareket tek gezinme modeli üzerinden güvenli yola dönüştürülecektir.
+Aşama 0'ın boş alanlı raycast prototipi, Aşama 1'de NavGraph + A* ve duvar engelli postane graybox sahnesiyle değiştirilmiştir. Yankı, kaset ve kayıt sistemleri sonraki aşamalardadır.
 
 ## Dosyalar
 
@@ -47,3 +47,11 @@ Aşama 0'da **NavGraph/A\***, engeller, kaset, yankı, kayıt sistemi, hikâye a
 - `docs/decisions.md`: mimari karar günlüğü.
 - `docs/test-plan.md`: Aşama 0 doğrulama ve test sınırları.
 
+
+## Aşama 1 — yürünebilir postane graybox
+
+WASD/ok tuşlarıyla kamera yönünde yürü; zemine tıklayarak dört yönlü A* rotası çizdir. Kapalı postane girişine yol bulunmaz. Posta kutusuna uzaktan tıklayınca Ada güvenli bir yaklaşma noktasına gider; yakında `E` etkileşim olayı gönderir. Bulmaca ya da envanter henüz işlenmez.
+
+Kontrol: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm run test:e2e`.
+
+`public/content/l01/geometry.glb` adlandırılmış geçici graybox'tır; kalıcı Blender export yapılmadı. Ayrıntı `docs/stage1-status.md` içinde.

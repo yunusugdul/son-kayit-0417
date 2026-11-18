@@ -12,11 +12,13 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test:e2e": "playwright test",
-    "check": "npm run build",
+    "check": "npm run check:assets && npm run test:unit && npm run build",
     "report:sizes": "node scripts/report-sizes.mjs",
     "report:stage0": "node scripts/write-report.mjs",
     "check:tools": "node scripts/check-tools.mjs",
-    "check:live": "node scripts/check-live.mjs"
+    "check:live": "node scripts/check-live.mjs",
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
+    "check:assets": "node scripts/check-geometry.mjs"
   },
   "dependencies": {
     "three": "0.187.0"
