@@ -13,6 +13,7 @@ import { PuzzleSystem } from './gameplay/PuzzleSystem';
 import { StoryDirector, translated } from './gameplay/StoryDirector';
 import { SaveManager, blankSave, type GameSave } from './persistence/SaveManager';
 import { AudioManager } from './audio/AudioManager';
+import { createL01Art, type ArtQuality } from './visual/Stage4Art';
 import './style.css';
 
 const FIXED_STEP = 1 / 60;
@@ -48,9 +49,14 @@ interface Stage3Debug extends Stage2Debug {
   floorIndex(): number;
   completed(): boolean;
 }
+interface Stage4Debug extends Stage3Debug {
+  artQuality(): ArtQuality;
+  triangles(): number;
+  gpuMemory(): [number, number];
+}
 
 declare global {
-  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; __stage2?: Stage2Debug; __stage3?: Stage3Debug; }
+  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; __stage2?: Stage2Debug; __stage3?: Stage3Debug; __stage4?: Stage4Debug; }
 }
 
 const view = document.querySelector<HTMLDivElement>('#game-view');
@@ -80,7 +86,7 @@ function webgl2Available(): boolean {
 }
 if (!webgl2Available()) showFallback();
 else startStage1(view, debugPanel, feedback, prompt).catch(error => {
-  console.error('Stage 3 scene failed:', error);
+  console.error('Stage 4 scene failed:', error);
   const note = fallback!.querySelector('p');
   if (note) note.textContent = '3D model yüklenemedi. Lütfen sayfayı yenileyin veya bağlantınızı kontrol edin.';
   showFallback();
@@ -93,7 +99,8 @@ async function startStage1(
   interactionPrompt: HTMLOutputElement,
 ): Promise<void> {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#1d2c3a');
+  scene.background = new THREE.Color('#142633');
+  scene.fog = new THREE.Fog('#142633', 18, 34);
   const camera = new THREE.OrthographicCamera(-6, 6, 6, -6, 0.1, 100);
   camera.position.set(9, 9, 9);
   camera.lookAt(0, 0, 0);
@@ -102,9 +109,9 @@ async function startStage1(
   renderer.domElement.setAttribute('aria-label', 'Postane etrafındaki izometrik diorama; Ada ile yürüyebilir, posta kutusuna tıklayabilirsiniz.');
   renderer.domElement.tabIndex = 0;
   container.appendChild(renderer.domElement);
-  const ambient = new THREE.HemisphereLight('#e5e3d7', '#425565', 2);
+  const ambient = new THREE.HemisphereLight('#e3d5bd', '#344b5d', 1.65);
   scene.add(ambient);
-  const light = new THREE.DirectionalLight('#e5b363', 2);
+  const light = new THREE.DirectionalLight('#f7cc86', 2.3);
   light.position.set(-4, 8, 5);
   scene.add(light);
 
@@ -148,10 +155,7 @@ async function startStage1(
   const liveSolids = SOLID_RECTS.map(rect => ({ ...rect }));
   const doorCollider = liveSolids[2];
   const player = new PlayerController(nav, liveSolids);
-  const ada = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5),
-    new THREE.MeshLambertMaterial({ color: '#e5b363' }));
-  ada.position.set(player.position.x, 0.65, player.position.z);
-  scene.add(ada);
+  let ada: THREE.Group; // Created by the stage-4 modular character kit.
   const marker = new THREE.Mesh(new THREE.RingGeometry(0.17, 0.23, 32),
     new THREE.MeshBasicMaterial({ color: '#8be5d1', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
   marker.rotation.x = -Math.PI / 2;
@@ -177,10 +181,17 @@ async function startStage1(
   // Fixed shelf sits behind the temporary stairway. Visual and nav-layer are separate.
   const shelf = block('l01_shelf',3.5,0.7,-2.1,0.7,1.4,0.38,'#6f7788');
   void counter; void shelf;
+  const art = createL01Art(
+    scene, ground, grid, plinth, meshMap,
+    new THREE.Vector3(1.0, 0.055, -0.5),
+    new THREE.Vector3(2.5, 0.055, -1.5),
+  );
+  ada = art.character;
+  ada.position.set(player.position.x, player.position.y, player.position.z);
   const interactive: Interactable[] = [
-    { id: 'l01_mailbox', label: 'Posta kutusu', mesh: meshMap.get('l01_mailbox')!, position: new THREE.Vector3(-2.5, 0, 0.5) },
+    { id: 'l01_mailbox', label: 'Posta kutusu', mesh: art.mailboxTarget, position: new THREE.Vector3(-2.5, 0, 0.5) },
     { id: 'l01_door_main', label: 'Kayıp giriş', mesh: meshMap.get('l01_door_main')!, position: new THREE.Vector3(1.55, 0, -0.5) },
-    { id: 'l01_sign', label: 'Postane tabelası', mesh: meshMap.get('l01_sign')!, position: new THREE.Vector3(1.6, 0, 1.4) },
+    { id: 'l01_sign', label: 'Postane tabelası', mesh: art.signTarget, position: new THREE.Vector3(1.6, 0, 1.4) },
     { id: 'l01_note_counter', label: 'Tezgâhtaki not', mesh: noteMesh, position: new THREE.Vector3(2.85,0,-1.0) },
     { id: 'l01_efe_tape', label: "Efe'nin kaseti", mesh: tapeMesh, position: new THREE.Vector3(3.5,1.4,-1.5), floorIndex: 1 },
   ];
@@ -289,6 +300,7 @@ async function startStage1(
     import: required<HTMLButtonElement>('import-control'),
     importFile: required<HTMLInputElement>('import-file'),
     storageWarning: required<HTMLElement>('storage-warning'),
+    quality: required<HTMLSelectElement>('quality-control'),
   };
   const audio = new AudioManager();
   const saves = new SaveManager();
@@ -300,6 +312,18 @@ async function startStage1(
   let paused = true;
   let hintIndex = 0;
   let sinceHint = 99;
+  let qualityMode: ArtQuality = 'auto';
+  function dprLimit(): number {
+    const mobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 800;
+    return qualityMode === 'low' ? 1 : qualityMode === 'high' ? MAX_DPR : mobile ? 1.25 : MAX_DPR;
+  }
+  function applyQuality(next: ArtQuality): void {
+    qualityMode = next;
+    art.setQuality(next, window.innerWidth < 800 || window.matchMedia('(pointer: coarse)').matches);
+    ui.quality.value = next;
+    try { localStorage.setItem('son-kayit-art-quality', next); } catch { /* private mode */ }
+    resize();
+  }
   function refreshSaveWarning(): void {
     ui.storageWarning.hidden = !saves.storageFailed;
     if (saves.storageFailed) ui.storageWarning.textContent = translated('ui.saveUnavailable');
@@ -362,6 +386,7 @@ async function startStage1(
     const spawn = level.checkpoints.find(cp => cp.id === checkpoint);
     if (!spawn) throw new Error('Missing checkpoint in level');
     player.resetTo(spawn.position[0],spawn.position[2]);
+    ada.position.set(player.position.x, player.position.y, player.position.z);
     if (puzzleFlags.has('l01_interior_reached')) passage.latch();
     puzzle = new PuzzleSystem(level.puzzles,puzzleFlags,{apply:applyAction});
     ui.menu.hidden = true;
@@ -397,6 +422,7 @@ async function startStage1(
     };
     tell(result === 'started' && anchorId === 'l01_echo_b' ? 'Basamaklar hatırlanıyor… üst rafa çık.' : notices[result]);
     if (result === 'started') {
+      art.record();
       audio.play('echo');
       window.dispatchEvent(new CustomEvent('game:echo', { detail: { anchorId, tapeId: 'bell' } }));
     } else audio.play('error');
@@ -438,6 +464,7 @@ async function startStage1(
   interactions.onFeedback = tell;
   interactions.onEvent = ({ id, label }) => {
     if (paused) return;
+    art.interact();
     window.dispatchEvent(new CustomEvent('game:interact', { detail: { interactId: id } }));
     if (puzzle.emit('interactId',id)) { persist(); return; }
     if (id === 'l01_door_main') tell(nav.links.get(ENTRY_LINK_ID)?.enabled ?
@@ -516,7 +543,7 @@ async function startStage1(
     camera.top = worldHeight / 2;
     camera.bottom = -worldHeight / 2;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_DPR));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprLimit()));
     renderer.setSize(width, height);
   }
   window.addEventListener('resize', resize);
@@ -587,6 +614,10 @@ async function startStage1(
   ui.menuControl.addEventListener('click',returnToMenu);
   ui.completeMenu.addEventListener('click',returnToMenu);
   ui.hintButton.addEventListener('click',showHint);
+  ui.quality.addEventListener('change', () => applyQuality(ui.quality.value as ArtQuality));
+  let savedQuality: string | null = null;
+  try { savedQuality = localStorage.getItem('son-kayit-art-quality'); } catch { /* private mode */ }
+  applyQuality(savedQuality === 'high' || savedQuality === 'low' ? savedQuality : 'auto');
   function dismissSubtitle(): void {
     story.dismiss();
     ui.subtitleBox.hidden = true;
@@ -633,7 +664,7 @@ async function startStage1(
   }
 
 
-  const api: Stage3Debug = {
+  const api: Stage4Debug = {
     position: () => [player.position.x, player.position.y + 0.65, player.position.z],
     paused: () => paused,
     drawCalls: () => renderer.info.render.calls,
@@ -650,6 +681,9 @@ async function startStage1(
     checkpoint: () => checkpoint,
     floorIndex: () => player.floorIndex,
     completed: () => completed,
+    artQuality: () => qualityMode,
+    triangles: () => renderer.info.render.triangles,
+    gpuMemory: () => [renderer.info.memory.geometries, renderer.info.memory.textures],
     eventIds: () => interactions.events.map(e => e.id),
     meshIds: () => [...meshMap.keys()].sort(),
     hoverId: () => interactions.hoverId,
@@ -660,13 +694,14 @@ async function startStage1(
     },
   };
   if (showDebug) {
-    window.__stage0 = api; window.__stage1 = api; window.__stage2 = api; window.__stage3 = api;
+    window.__stage0 = api; window.__stage1 = api; window.__stage2 = api; window.__stage3 = api; window.__stage4 = api;
     panel.hidden = false;
   }
 
   const direction = new THREE.Vector3();
   function fixedUpdate(dt: number): void {
     direction.copy(input.direction(camera));
+    const prevX = player.position.x, prevZ = player.position.z;
     player.fixedUpdate(dt, direction.x, direction.z);
     if (!puzzleFlags.has('l01_interior_reached') && player.floorIndex === 0 &&
       player.position.x > 2.28 && player.position.x < 3.78 &&
@@ -679,7 +714,9 @@ async function startStage1(
     sinceHint += dt;
     updateDoorAppearance();
     updateEchoHud();
-    ada.position.set(player.position.x, player.position.y + 0.65, player.position.z);
+    ada.position.set(player.position.x, player.position.y, player.position.z);
+    art.update(dt, player.position.x - prevX, player.position.z - prevZ,
+      echo.snapshot, puzzleFlags.has('l01_note_read'));
     if (!player.movingToTarget) marker.visible = false;
     if (messageElapsed > 0) {
       messageElapsed -= dt;
@@ -693,13 +730,13 @@ async function startStage1(
     if (paused) return;
     accumulator += dt;
     while (accumulator >= FIXED_STEP) { fixedUpdate(FIXED_STEP); accumulator -= FIXED_STEP; }
-    fade.update(dt, camera, ada.position);
+    fade.update(dt, camera, new THREE.Vector3(ada.position.x, ada.position.y + 0.78, ada.position.z));
     renderer.render(scene, camera);
     if (showDebug) {
       frames++; sampleTime += dt;
       if (sampleTime >= 0.5) {
         measuredFps = Math.round(frames / sampleTime);
-        panel.textContent = `FPS: ${measuredFps}\nDraw calls: ${renderer.info.render.calls}\nTriangles: ${renderer.info.render.triangles}\nDPR: ${Math.min(window.devicePixelRatio || 1, MAX_DPR).toFixed(1)}\nNav: ${player.cell?.id ?? 'none'}\nDoor: ${nav.links.get(ENTRY_LINK_ID)?.enabled ? 'OPEN' : 'CLOSED'}\nEcho: ${echo.snapshot.phase}`;
+        panel.textContent = `FPS: ${measuredFps}\nDraw calls: ${renderer.info.render.calls}\nTriangles: ${renderer.info.render.triangles}\nDPR: ${Math.min(window.devicePixelRatio || 1, dprLimit()).toFixed(2)}\nNav: ${player.cell?.id ?? 'none'}\nDoor: ${nav.links.get(ENTRY_LINK_ID)?.enabled ? 'OPEN' : 'CLOSED'}\nEcho: ${echo.snapshot.phase}`;
         frames = 0; sampleTime = 0;
       }
     }
