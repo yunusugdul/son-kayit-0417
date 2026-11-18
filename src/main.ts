@@ -519,14 +519,107 @@ async function startStage1(
   window.addEventListener('resize', resize);
   resize();
   let accumulator = 0, last = performance.now(), frames = 0, sampleTime = 0, measuredFps = 0;
+  function newGame(): void {
+    saves.clear();
+    const fresh = saves.save(blankSave());
+    begin(fresh);
+  }
+  function returnToMenu(): void {
+    ui.menu.hidden = false;
+    ui.pause.hidden = true;
+    ui.complete.hidden = true;
+    ui.subtitleBox.hidden = true;
+    ui.menuContinue.disabled = !saves.load();
+    paused = true;
+    input.clear();
+    audio.suspend();
+  }
+  function togglePause(): void {
+    if (!ui.menu.hidden || !ui.complete.hidden || document.hidden) return;
+    ui.pause.hidden = !ui.pause.hidden;
+    paused = !ui.pause.hidden;
+    if (paused) { input.clear(); audio.suspend(); }
+    else void audio.unlock();
+    accumulator = 0; last = performance.now();
+  }
+  function showHint(): void {
+    if (paused) return;
+    const hints = !puzzleFlags.has('l01_tape_found') ?
+      ['Önce dış sokaktaki posta kutusunu incele.',
+       'Posta kutusuna tıkla ya da yanına gidip E tuşuna bas.',
+       'Zil kasetini kutudan al; turkuaz yankı izine yaklaş.'] :
+      !puzzleFlags.has('l01_interior_reached') ?
+      ['Girişteki turkuaz halkayı bul.',
+       'Zil kasetini girişteki halkaya yakınken çal.',
+       'Kapı görünürken içeri yürü.'] :
+      !puzzleFlags.has('l01_note_read') ?
+      ['Postanenin içindeki tezgâha bak.',
+       'Tezgâhtaki açık renkli nota dokun.',
+       'Notu oku, sonra ikinci turkuaz izi bul.'] :
+      ['Üst rafa giden basamaklar silinmiş.',
+       'İçerideki turkuaz iz B yanında zil kasetini tekrar çal.',
+       'Basamaklar görünürken üstteki kasete dokun veya tıkla.'];
+    if (sinceHint >= 25) hintIndex = Math.min(2,hintIndex + 1);
+    hintIndex = Math.max(0,hintIndex);
+    sinceHint = 0;
+    tell(hints[hintIndex]);
+  }
+  function exportSave(): void {
+    const blob = new Blob([saves.exportJson()],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'son-kayit-0417-kayit.json';
+    document.body.appendChild(link); link.click(); link.remove();
+    URL.revokeObjectURL(url);
+  }
+  ui.menuNew.addEventListener('click',() => { void audio.unlock(); newGame(); });
+  ui.menuContinue.addEventListener('click',() => {
+    void audio.unlock();
+    const loaded = saves.load();
+    if (loaded) begin(loaded);
+    else tell('Geçerli kayıt bulunamadı.');
+  });
+  ui.resume.addEventListener('click',togglePause);
+  ui.pauseButton.addEventListener('click',togglePause);
+  ui.menuControl.addEventListener('click',returnToMenu);
+  ui.completeMenu.addEventListener('click',returnToMenu);
+  ui.hintButton.addEventListener('click',showHint);
+  ui.subtitleDismiss.addEventListener('click',() => {
+    story.dismiss(); ui.subtitleBox.hidden = true;
+  });
+  ui.export.addEventListener('click',exportSave);
+  ui.pauseExport.addEventListener('click',exportSave);
+  ui.import.addEventListener('click',() => ui.importFile.click());
+  ui.importFile.addEventListener('change',async () => {
+    const file = ui.importFile.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 32768) throw new Error('Oversized save');
+      begin(saves.importJson(await file.text()));
+      tell(translated('ui.saved'));
+    } catch { tell(translated('ui.importFailed')); audio.play('error'); }
+    finally { ui.importFile.value = ''; }
+  });
+  window.addEventListener('keydown',event => {
+    if (event.code === 'Escape' && !event.repeat) { event.preventDefault(); togglePause(); }
+    if (event.code === 'KeyH' && !event.repeat) { event.preventDefault(); showHint(); }
+    if (event.code === 'Enter' && !ui.subtitleBox.hidden) {
+      event.preventDefault(); story.dismiss(); ui.subtitleBox.hidden = true;
+    }
+  });
   document.addEventListener('visibilitychange', () => {
-    paused = document.hidden;
+    paused = document.hidden || !ui.menu.hidden || !ui.pause.hidden || !ui.complete.hidden;
+    if (document.hidden) audio.suspend();
     input.clear();
     accumulator = 0;
     last = performance.now();
   });
+  ui.menuContinue.disabled = !saves.load();
+  refreshSaveWarning();
+  if (showDebug) newGame(); // Preserve Stage 0/1 scripted movement in debug harness.
 
-  const api: Stage2Debug = {
+
+  const api: Stage3Debug = {
     position: () => [player.position.x, player.position.y + 0.65, player.position.z],
     paused: () => paused,
     drawCalls: () => renderer.info.render.calls,
@@ -539,6 +632,10 @@ async function startStage1(
     echo: () => echo.snapshot,
     entryLatched: () => passage.isLatched,
     cassette: () => [...ownedTapes].join(','),
+    flags: () => [...puzzleFlags],
+    checkpoint: () => checkpoint,
+    floorIndex: () => player.floorIndex,
+    completed: () => completed,
     eventIds: () => interactions.events.map(e => e.id),
     meshIds: () => [...meshMap.keys()].sort(),
     hoverId: () => interactions.hoverId,
@@ -548,19 +645,24 @@ async function startStage1(
       return [rect.left + (p.x + 1) * rect.width / 2, rect.top + (1 - p.y) * rect.height / 2];
     },
   };
-  if (showDebug) { window.__stage0 = api; window.__stage1 = api; window.__stage2 = api; panel.hidden = false; }
+  if (showDebug) {
+    window.__stage0 = api; window.__stage1 = api; window.__stage2 = api; window.__stage3 = api;
+    panel.hidden = false;
+  }
 
   const direction = new THREE.Vector3();
   function fixedUpdate(dt: number): void {
     direction.copy(input.direction(camera));
     player.fixedUpdate(dt, direction.x, direction.z);
-    if (!passage.isLatched && player.position.x > 2.28 && player.position.x < 3.78 &&
+    if (!puzzleFlags.has('l01_interior_reached') && player.floorIndex === 0 &&
+      player.position.x > 2.28 && player.position.x < 3.78 &&
       player.position.z > -2.72 && player.position.z < 0.72) {
       passage.latch();
-      puzzleFlags.add('l01_interior_reached'); // temporary in-session latch, not a Stage 3 save.
+      if (puzzle.emit('triggerId','l01_interior_trigger')) persist();
     }
-    echo.fixedUpdate(dt, () =>
+    echo.fixedUpdate(dt, group => group.id === 'l01_stairs' ? player.floorIndex === 1 :
       Math.abs(player.position.x - 2) <= 0.47 && Math.abs(player.position.z + 0.5) <= 0.78);
+    sinceHint += dt;
     updateDoorAppearance();
     updateEchoHud();
     ada.position.set(player.position.x, player.position.y + 0.65, player.position.z);
