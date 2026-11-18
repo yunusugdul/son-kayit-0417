@@ -18,9 +18,17 @@ export const NAV_LAYOUT: NavLayout = (() => {
   for (let i = 7; i <= 8; i++) { barrier(i, 1, i, 2); barrier(i, 5, i, 6); }
   // Small fence in the street: the route must pass around either end.
   for (let j = 3; j <= 5; j++) barrier(3, j, 4, j);
+  // An elevated, two-cell upper shelf. Only the explicit echo stair link joins floors.
+  for (let col = 7; col <= 8; col++) nodes.push({
+    id: cellId(col, 3, 1), x: col - 4.5, z: -1.5,
+    worldY: 1.4, floorIndex: 1, walkable: true,
+  });
   return {
     nodes, barriers,
-    links: [{ id: ENTRY_LINK_ID, from: cellId(6, 4), to: cellId(7, 4), kind: 'door', enabled: false, requiredEchoGroup: 'l01_entry' }],
+    links: [
+      { id: ENTRY_LINK_ID, from: cellId(6, 4), to: cellId(7, 4), kind: 'door', enabled: false, requiredEchoGroup: 'l01_entry' },
+      { id: 'l01_link_upper', from: cellId(7, 3), to: cellId(7, 3, 1), kind: 'stairs', enabled: false, requiredEchoGroup: 'l01_stairs' },
+    ],
   };
 })();
 

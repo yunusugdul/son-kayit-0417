@@ -8,7 +8,11 @@ import { InputManager } from './input/InputManager';
 import { OcclusionFade } from './rendering/OcclusionFade';
 import { EchoSystem } from './gameplay/EchoSystem';
 import { EchoPassage } from './gameplay/EchoPassage';
-import { L01_ECHO_ANCHORS, L01_ECHO_GROUPS } from './gameplay/Stage2EchoData';
+import { parseLevel, type GameAction } from './content/levelSchema';
+import { PuzzleSystem } from './gameplay/PuzzleSystem';
+import { StoryDirector, translated } from './gameplay/StoryDirector';
+import { SaveManager, blankSave, type GameSave } from './persistence/SaveManager';
+import { AudioManager } from './audio/AudioManager';
 import './style.css';
 
 const FIXED_STEP = 1 / 60;
@@ -38,9 +42,15 @@ interface Stage2Debug extends Stage1Debug {
   entryLatched(): boolean;
   cassette(): string;
 }
+interface Stage3Debug extends Stage2Debug {
+  flags(): string[];
+  checkpoint(): string;
+  floorIndex(): number;
+  completed(): boolean;
+}
 
 declare global {
-  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; __stage2?: Stage2Debug; }
+  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; __stage2?: Stage2Debug; __stage3?: Stage3Debug; }
 }
 
 const view = document.querySelector<HTMLDivElement>('#game-view');
@@ -51,7 +61,7 @@ const prompt = document.querySelector<HTMLOutputElement>('#interaction-prompt');
 const echoState = document.querySelector<HTMLOutputElement>('#echo-state');
 const echoButton = document.querySelector<HTMLButtonElement>('#echo-control');
 if (!view || !fallback || !debugPanel || !feedback || !prompt || !echoState || !echoButton) {
-  throw new Error('Gerekli Stage 1 DOM elemanları bulunamadı.');
+  throw new Error('Gerekli oyun DOM elemanları bulunamadı.');
 }
 const showDebug = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
 
@@ -70,7 +80,7 @@ function webgl2Available(): boolean {
 }
 if (!webgl2Available()) showFallback();
 else startStage1(view, debugPanel, feedback, prompt).catch(error => {
-  console.error('Stage 1 scene failed:', error);
+  console.error('Stage 3 scene failed:', error);
   const note = fallback!.querySelector('p');
   if (note) note.textContent = '3D model yüklenemedi. Lütfen sayfayı yenileyin veya bağlantınızı kontrol edin.';
   showFallback();
@@ -111,7 +121,18 @@ async function startStage1(
   plinth.position.y = -0.44;
   scene.add(plinth);
 
-  // Fail loudly on invalid asset IDs; no invisible fallback wall collisions.
+  // Load the authored level contract and its requested graybox asset on demand.
+  const response = await fetch(`${import.meta.env.BASE_URL}content/l01/level.json`);
+  if (!response.ok) throw new Error('L01 level JSON unavailable');
+  const level = parseLevel(await response.json());
+  const manifestResponse = await fetch(`${import.meta.env.BASE_URL}${level.assetManifest}`);
+  if (!manifestResponse.ok) throw new Error('L01 manifest unavailable');
+  const manifest: unknown = await manifestResponse.json();
+  if (!manifest || typeof manifest !== 'object' ||
+    (manifest as {schemaVersion?:unknown}).schemaVersion !== 1 ||
+    (manifest as {geometry?:unknown}).geometry !== 'content/l01/geometry.glb') {
+    throw new Error('Unsupported L01 asset manifest');
+  }
   const loaded = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}content/l01/geometry.glb`);
   const meshMap = new Map<string, THREE.Mesh>();
   loaded.scene.traverse(child => {
@@ -138,10 +159,30 @@ async function startStage1(
   marker.visible = false;
   scene.add(marker);
 
+  // Level-owned small graybox props. The initial Blender-exported GLB stays unchanged.
+  function block(id: string, x: number, y: number, z: number, w: number, h: number, d: number, color: string): THREE.Mesh {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshLambertMaterial({color}));
+    mesh.name = id;
+    mesh.position.set(x,y,z);
+    meshMap.set(id,mesh);
+    scene.add(mesh);
+    return mesh;
+  }
+  const counter = block('l01_counter',2.85,0.45,-1.9,1.15,0.9,0.5,'#977b64');
+  const noteMesh = block('l01_note_counter',2.85,0.95,-1.9,0.42,0.05,0.34,'#f5d9a0');
+  const stairA = block('l01_stair_a',2.5,1.31,-1.5,0.98,0.18,0.98,'#72c8b5');
+  const stairB = block('l01_stair_b',3.5,1.31,-1.5,0.98,0.18,0.98,'#72c8b5');
+  const tapeMesh = block('l01_efe_tape',3.5,1.57,-1.5,0.38,0.24,0.25,'#e1c281');
+  // Fixed shelf sits behind the temporary stairway. Visual and nav-layer are separate.
+  const shelf = block('l01_shelf',3.5,0.7,-2.1,0.7,1.4,0.38,'#6f7788');
+  void counter; void shelf;
   const interactive: Interactable[] = [
     { id: 'l01_mailbox', label: 'Posta kutusu', mesh: meshMap.get('l01_mailbox')!, position: new THREE.Vector3(-2.5, 0, 0.5) },
-    { id: 'l01_door_main', label: 'Kapalı postane kapısı', mesh: meshMap.get('l01_door_main')!, position: new THREE.Vector3(1.55, 0, -0.5) },
+    { id: 'l01_door_main', label: 'Kayıp giriş', mesh: meshMap.get('l01_door_main')!, position: new THREE.Vector3(1.55, 0, -0.5) },
     { id: 'l01_sign', label: 'Postane tabelası', mesh: meshMap.get('l01_sign')!, position: new THREE.Vector3(1.6, 0, 1.4) },
+    { id: 'l01_note_counter', label: 'Tezgâhtaki not', mesh: noteMesh, position: new THREE.Vector3(2.85,0,-1.9) },
+    { id: 'l01_efe_tape', label: "Efe'nin kaseti", mesh: tapeMesh, position: new THREE.Vector3(3.5,1.4,-1.5), floorIndex: 1 },
   ];
   const interactions = new InteractionSystem(nav, player, liveSolids, interactive);
   const input = new InputManager();
@@ -150,13 +191,9 @@ async function startStage1(
     meshMap.get('l01_wall_east')!, meshMap.get('l01_wall_north')!,
   ]);
 
-  // Stage 2 only: bell is available as a DEMO cassette. Mailbox inventory belongs to Stage 3.
-  const ownedTapes = new Set(['bell']);
+  const ownedTapes = new Set<import('./gameplay/EchoSystem').TapeId>();
   const puzzleFlags = new Set<string>();
-  const echo = new EchoSystem(
-    L01_ECHO_ANCHORS.filter(anchor => anchor.id === 'l01_echo_a'),
-    L01_ECHO_GROUPS.filter(group => group.id === 'l01_entry'),
-  );
+  const echo = new EchoSystem(level.echoAnchors,level.echoGroups);
   for (const group of echo.groups.values()) {
     for (const meshId of group.objectIds) if (!meshMap.has(meshId)) throw new Error(`Missing echo mesh: ${meshId}`);
     for (const linkId of group.navigationLinkIds ?? []) if (!nav.links.has(linkId)) throw new Error(`Missing echo nav link: ${linkId}`);
@@ -184,17 +221,45 @@ async function startStage1(
   anchorCore.position.set(anchorSpot.x, anchorSpot.y + 0.008, anchorSpot.z);
   scene.add(anchorCore);
 
+  const anchorBSpot = new THREE.Vector3(2.5,0.055,-1.5);
+  const anchorBMark = new THREE.Mesh(
+    new THREE.RingGeometry(0.36,0.47,48),
+    new THREE.MeshBasicMaterial({color:'#7fe2cf',transparent:true,opacity:0.76,side:THREE.DoubleSide}),
+  );
+  anchorBMark.name = 'l01_echo_b_marker';
+  anchorBMark.rotation.x = -Math.PI/2;
+  anchorBMark.position.copy(anchorBSpot);
+  anchorBMark.visible = false;
+  scene.add(anchorBMark);
+  const stairs = [stairA,stairB];
+  for (const stair of stairs) {
+    const material = stair.material as THREE.MeshLambertMaterial;
+    material.transparent = true;
+    material.opacity = 0;
+    material.depthWrite = false;
+    stair.visible = false;
+  }
   // During SAFE_HOLD the collider remains disabled. On interior entry a permanent
   // escape route is latched so disappearing echoes never trap the player.
   const passage = new EchoPassage(nav, liveSolids, doorCollider, ENTRY_LINK_ID);
-  echo.onPhaseChange = snapshot => passage.apply(snapshot);
+  echo.onPhaseChange = snapshot => {
+    passage.apply({...snapshot,traversable:snapshot.groupId === 'l01_entry' && snapshot.traversable});
+    nav.setLinkEnabled('l01_link_upper',snapshot.groupId === 'l01_stairs' && snapshot.traversable);
+  };
   function updateDoorAppearance(): void {
-    const progress = echo.snapshot.visualProgress;
-    echoMaterial.opacity = passage.isLatched ? progress : 0.13 + 0.87 * progress;
+    const snapshot = echo.snapshot;
+    const progress = snapshot.groupId === 'l01_entry' ? snapshot.visualProgress : 0;
+    echoMaterial.opacity = passage.isLatched ? 0 : 0.13 + 0.87 * progress;
     doorMesh.visible = echoMaterial.opacity > 0.01;
     echoMaterial.depthWrite = echoMaterial.opacity > 0.98;
     // Reinforce the interaction marker without creating a dynamic shadow or particles.
     (anchorMark.material as THREE.MeshBasicMaterial).opacity = 0.58 + 0.24 * progress;
+    const bProgress = snapshot.groupId === 'l01_stairs' ? snapshot.visualProgress : 0;
+    for (const stair of stairs) {
+      (stair.material as THREE.MeshLambertMaterial).opacity = bProgress;
+      stair.visible = bProgress > 0.01;
+    }
+    anchorBMark.visible = puzzleFlags.has('l01_note_read');
   }
   passage.apply(echo.snapshot);
   updateDoorAppearance();
