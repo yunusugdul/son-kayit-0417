@@ -1,8 +1,8 @@
 # SON KAYIT: 04.17
 
-Three.js + TypeScript + Vite ile hazırlanan, web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Şu an yalnızca Aşama 0 teknik prototipi** vardır: gerçek 3D sahne, ortografik kamera, Ada küpü, WASD/ok tuşu ve tıkla/dokun-yürü hareketi, WebGL2 uyarısı, responsive görünüm ve performans debug paneli.
+Three.js + TypeScript + Vite ile hazırlanan, web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Şu an Aşama 2 yankı çekirdeği prototipi** vardır: ortografik 3D postane, güvenli NavGraph/A* yürüme, etkileşim, süreli zil yankısı, SAFE_HOLD geçit güvenliği, WebGL2 kontrolü ve performans paneli. Tam L01 hikâyesi, gerçek kaset toplama ve checkpoint henüz yoktur.
 
-> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§17 AŞAMA 0**, **§18** ve **§20.1**.
+> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§4.2–4.3**, **§17 AŞAMA 2** ve **§18**.
 
 ## Geliştirme
 
@@ -21,23 +21,19 @@ npm run build
 npm run preview
 npm run report:sizes
 npm run test:e2e
-npm run check:live
 ```
 
-`npm run test:e2e` öncesi yerelde `npx playwright install chromium` gerekir. CI, Ubuntu çalıştırıcısında önceden kurulu Chrome ile test yapar. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
+`npm run test:e2e` öncesi `npx playwright install chromium` gerekir. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
 
 ## Dağıtım
 
-**Canlı Aşama 0 statik prototipi:** https://son-kayit-0417.onrender.com/ — Render, GitHub `main` otomatik dağıtım; `npm ci && npm run build`, yayın klasörü `dist/`. Canlı HTTP ve JS/CSS smoke doğrulaması `npm run check:live` ile yapılabilir.
-
-
-`main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak kullanıcı tarafından seçilmelidir (Settings → Pages → Build and deployment → Source). Pages henüz etkin değilse derleme/test geçer, dağıtım adımı **atlanır** ve Actions özetinde yönetici ayarı belirtilir. Etkinleştirdikten sonra workflow'u yeniden çalıştırın. Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
+`main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak seçilmelidir (Settings → Pages → Build and deployment → Source). Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
 
 Workflow ilk çalışmada, kilit dosyası yoksa npm ile `package-lock.json` üretip repo'ya commit eder. Sonraki çalışmalarda `npm ci` kullanılır; sürüm güncellemesi ayrı PR ile yapılır. Kullanıcı/test verileri hiçbir sunucuya gönderilmez.
 
-## Aşama 0'dan Aşama 1'e geçiş
+## Bilinçli kapsam sınırı
 
-Aşama 0'ın boş alanlı raycast prototipi, Aşama 1'de NavGraph + A* ve duvar engelli postane graybox sahnesiyle değiştirilmiştir. Yankı, kaset ve kayıt sistemleri sonraki aşamalardadır.
+Aşama 0'da **NavGraph/A\***, engeller, kaset, yankı, kayıt sistemi, hikâye akışı ve GLB yoktur. Tıkla-git **yalnızca boş başlangıç zemini için geçerli bir raycast prototipidir**. Aşama 1'de tüm hareket tek gezinme modeli üzerinden güvenli yola dönüştürülecektir.
 
 ## Dosyalar
 
@@ -50,8 +46,14 @@ Aşama 0'ın boş alanlı raycast prototipi, Aşama 1'de NavGraph + A* ve duvar 
 
 ## Aşama 1 — yürünebilir postane graybox
 
-WASD/ok tuşlarıyla kamera yönünde yürü; zemine tıklayarak dört yönlü A* rotası çizdir. Kapalı postane girişine yol bulunmaz. Posta kutusuna uzaktan tıklayınca Ada güvenli bir yaklaşma noktasına gider; yakında `E` etkileşim olayı gönderir. Bulmaca ya da envanter henüz işlenmez.
+Sahne açıldığında Ada'yı WASD veya oklarla kamera yönünde yürüt. Zemine tıklama 10×10 nav grafiği ve A* üzerinden güvenli yol bulur; postane kapalı olduğundan içine rota çizilmez. Posta kutusuna tıkla (uzaktan yaklaşır) veya yakında `E` tuşuna bas. Olay, `game:interact` olarak yayınlanır; Aşama 2 öncesinde bulmaca etkinleştirmez.
 
-Kontrol: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm run test:e2e`.
+Kontroller: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm run test:e2e`.
 
-`public/content/l01/geometry.glb` Blender 4.0.2 ile yeniden üretilmiş, adı doğrulanan geçici graybox modelidir. Blender kaynak betiği `source-assets/levels/generate-graybox-blender.py`; ayrıntı `docs/stage1-status.md` içinde.
+Üretim dosyası `public/content/l01/geometry.glb` yalnızca adlandırılmış bir graybox modelidir; kaynak `source-assets/levels/generate-graybox.py` içinde. Blender'dan kalıcı export yapılması ayrı sanat görevidir; bkz. `docs/stage1-status.md`.
+
+## Aşama 2 — yankı çekirdeği
+
+Postane girişindeki **turkuaz yankı izine** yaklaşarak `Space` veya **Kaseti Çal** düğmesini kullan. Başlangıçta yalnız test amaçlı `bell` kaseti hazırdır; doğru mesafede çalınca silinmiş kapı 0,4 saniyede oluşur, 12 saniye açık kalır, ardından 0,6 saniyede kaybolur ve 1,5 saniyelik beklemeye girer. Tekrar Space süreyi yenilemez. Kapı geçidindeyken `SAFE_HOLD` süreyi durdurur; içeri girildiyse geri çıkış kalıcı güvenli hale gelir. Mobilde düğmeyle aynı işlem yapılabilir.
+
+`EchoSystem` ve `EchoPassage` birim testleri ile `tests/e2e/stage2.spec.ts` tarayıcı testleri eklendi. Kayıt toplama, ikinci basamağın gerçek oyun akışı, checkpoint ve hikâye **Aşama 3** içindir. Ayrıntılı durum: [`docs/stage2-status.md`](docs/stage2-status.md).

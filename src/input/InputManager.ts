@@ -4,6 +4,7 @@ export class InputManager {
   private pressed = new Set<string>();
   private readonly navigationKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight']);
   onInteract: (() => void) | null = null;
+  onPlayEcho: (() => void) | null = null;
 
   constructor() {
     window.addEventListener('keydown', event => {
@@ -11,6 +12,9 @@ export class InputManager {
         event.preventDefault(); this.pressed.add(event.code);
       }
       if (event.code === 'KeyE' && !event.repeat) this.onInteract?.();
+      if (event.code === 'Space' && !event.repeat && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault(); this.onPlayEcho?.();
+      }
     });
     window.addEventListener('keyup', event => this.pressed.delete(event.code));
     window.addEventListener('blur', () => this.clear());

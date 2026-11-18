@@ -6,6 +6,9 @@ import { PlayerController } from './gameplay/PlayerController';
 import { InteractionSystem, type Interactable } from './gameplay/InteractionSystem';
 import { InputManager } from './input/InputManager';
 import { OcclusionFade } from './rendering/OcclusionFade';
+import { EchoSystem } from './gameplay/EchoSystem';
+import { EchoPassage } from './gameplay/EchoPassage';
+import { L01_ECHO_ANCHORS, L01_ECHO_GROUPS } from './gameplay/Stage2EchoData';
 import './style.css';
 
 const FIXED_STEP = 1 / 60;
@@ -30,8 +33,14 @@ interface Stage1Debug extends Stage0Debug {
   hoverId(): string | null;
   project(x: number, y: number, z: number): [number, number];
 }
+interface Stage2Debug extends Stage1Debug {
+  echo(): import('./gameplay/EchoSystem').EchoSnapshot;
+  entryLatched(): boolean;
+  cassette(): string;
+}
+
 declare global {
-  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; }
+  interface Window { __stage0?: Stage0Debug; __stage1?: Stage1Debug; __stage2?: Stage2Debug; }
 }
 
 const view = document.querySelector<HTMLDivElement>('#game-view');
@@ -39,7 +48,9 @@ const fallback = document.querySelector<HTMLElement>('#fallback');
 const debugPanel = document.querySelector<HTMLOutputElement>('#debug-panel');
 const feedback = document.querySelector<HTMLOutputElement>('#feedback');
 const prompt = document.querySelector<HTMLOutputElement>('#interaction-prompt');
-if (!view || !fallback || !debugPanel || !feedback || !prompt) {
+const echoState = document.querySelector<HTMLOutputElement>('#echo-state');
+const echoButton = document.querySelector<HTMLButtonElement>('#echo-control');
+if (!view || !fallback || !debugPanel || !feedback || !prompt || !echoState || !echoButton) {
   throw new Error('Gerekli Stage 1 DOM elemanları bulunamadı.');
 }
 const showDebug = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
@@ -49,6 +60,7 @@ function showFallback(): void {
   debugPanel!.hidden = true;
   feedback!.hidden = true;
   prompt!.hidden = true;
+  echoButton!.disabled = true;
   view!.replaceChildren();
 }
 
@@ -111,7 +123,10 @@ async function startStage1(
   scene.add(loaded.scene);
   const nav = new NavGraph(NAV_LAYOUT);
   if (nav.links.get(ENTRY_LINK_ID)?.enabled !== false) throw new Error('Door must begin closed.');
-  const player = new PlayerController(nav, SOLID_RECTS);
+  // The collider array is shared with the interaction system and changes atomically with nav links.
+  const liveSolids = SOLID_RECTS.map(rect => ({ ...rect }));
+  const doorCollider = liveSolids[2];
+  const player = new PlayerController(nav, liveSolids);
   const ada = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5),
     new THREE.MeshLambertMaterial({ color: '#e5b363' }));
   ada.position.set(player.position.x, 0.65, player.position.z);
@@ -128,12 +143,97 @@ async function startStage1(
     { id: 'l01_door_main', label: 'Kapalı postane kapısı', mesh: meshMap.get('l01_door_main')!, position: new THREE.Vector3(1.55, 0, -0.5) },
     { id: 'l01_sign', label: 'Postane tabelası', mesh: meshMap.get('l01_sign')!, position: new THREE.Vector3(1.6, 0, 1.4) },
   ];
-  const interactions = new InteractionSystem(nav, player, SOLID_RECTS, interactive);
+  const interactions = new InteractionSystem(nav, player, liveSolids, interactive);
   const input = new InputManager();
   input.onInteract = () => interactions.interactNearest();
   const fade = new OcclusionFade([
     meshMap.get('l01_wall_east')!, meshMap.get('l01_wall_north')!,
   ]);
+
+  // Stage 2 only: bell is available as a DEMO cassette. Mailbox inventory belongs to Stage 3.
+  const ownedTapes = new Set(['bell']);
+  const puzzleFlags = new Set<string>();
+  const echo = new EchoSystem(
+    L01_ECHO_ANCHORS.filter(anchor => anchor.id === 'l01_echo_a'),
+    L01_ECHO_GROUPS.filter(group => group.id === 'l01_entry'),
+  );
+  for (const group of echo.groups.values()) {
+    for (const meshId of group.objectIds) if (!meshMap.has(meshId)) throw new Error(`Missing echo mesh: ${meshId}`);
+    for (const linkId of group.navigationLinkIds ?? []) if (!nav.links.has(linkId)) throw new Error(`Missing echo nav link: ${linkId}`);
+  }
+  const doorMesh = meshMap.get('l01_door_main')!;
+  const doorMaterial = doorMesh.material;
+  if (Array.isArray(doorMaterial) || !(doorMaterial instanceof THREE.MeshStandardMaterial)) throw new Error('Door requires glTF standard material');
+  const echoMaterial = doorMaterial.clone();
+  echoMaterial.transparent = true;
+  echoMaterial.depthWrite = false;
+  echoMaterial.emissive.set('#45b8ac');
+  doorMesh.material = echoMaterial;
+  const anchorSpot = new THREE.Vector3(1.0, 0.055, -0.5);
+  const anchorMark = new THREE.Mesh(
+    new THREE.RingGeometry(0.38, 0.48, 48),
+    new THREE.MeshBasicMaterial({ color: '#7fe2cf', transparent: true, opacity: 0.86, side: THREE.DoubleSide }),
+  );
+  anchorMark.name = 'l01_echo_a_marker';
+  anchorMark.rotation.x = -Math.PI / 2;
+  anchorMark.position.copy(anchorSpot);
+  scene.add(anchorMark);
+  const anchorCore = new THREE.Mesh(new THREE.CircleGeometry(0.1, 24),
+    new THREE.MeshBasicMaterial({ color: '#bdf9e9', side: THREE.DoubleSide }));
+  anchorCore.rotation.x = -Math.PI / 2;
+  anchorCore.position.set(anchorSpot.x, anchorSpot.y + 0.008, anchorSpot.z);
+  scene.add(anchorCore);
+
+  // During SAFE_HOLD the collider remains disabled. On interior entry a permanent
+  // escape route is latched so disappearing echoes never trap the player.
+  const passage = new EchoPassage(nav, liveSolids, doorCollider, ENTRY_LINK_ID);
+  echo.onPhaseChange = snapshot => passage.apply(snapshot);
+  function updateDoorAppearance(): void {
+    const progress = echo.snapshot.visualProgress;
+    echoMaterial.opacity = passage.isLatched ? progress : 0.13 + 0.87 * progress;
+    doorMesh.visible = echoMaterial.opacity > 0.01;
+    echoMaterial.depthWrite = echoMaterial.opacity > 0.98;
+    // Reinforce the interaction marker without creating a dynamic shadow or particles.
+    (anchorMark.material as THREE.MeshBasicMaterial).opacity = 0.58 + 0.24 * progress;
+  }
+  passage.apply(echo.snapshot);
+  updateDoorAppearance();
+
+  let paused = document.hidden;
+  function playEcho(): void {
+    if (paused) return;
+    const distance = Math.hypot(player.position.x - anchorSpot.x, player.position.z - anchorSpot.z);
+    const result = echo.activate('l01_echo_a', ownedTapes.has('bell') ? 'bell' : null, distance, puzzleFlags);
+    const notices: Record<string, string> = {
+      started: 'Zil kaydı çalıyor… unutulmuş kapı ortaya çıkıyor.',
+      'out-of-range': 'Turkuaz yankı izine yaklaş (en fazla 1,6 m).',
+      'wrong-tape': 'Bu iz için uygun kaset seçili değil.',
+      'already-active': 'Yankı zaten etkin; süre yenilenmedi.',
+      busy: 'Başka bir yankı etkin. Önce tamamlanmasını bekle.',
+      cooldown: 'Kaset kısa süreliğine soğuyor.',
+      'missing-flag': 'Bu yankı için önce gerekli ipucunu bulmalısın.',
+      used: 'Bu yankı daha önce kullanıldı.',
+      'unknown-anchor': 'Yankı noktası tanınmadı.',
+    };
+    tell(notices[result]);
+    if (result === 'started') window.dispatchEvent(new CustomEvent('game:echo', { detail: { anchorId: 'l01_echo_a', tapeId: 'bell' } }));
+  }
+  echoButton!.addEventListener('click', playEcho);
+  input.onPlayEcho = playEcho;
+  function updateEchoHud(): void {
+    const state = echo.snapshot;
+    const labels: Record<typeof state.phase, string> = {
+      inactive: 'İz A’ya yaklaş · kapı silik',
+      materializing: 'Kapı hatırlanıyor…',
+      active: `Geçit açık · ${Math.ceil(state.secondsRemaining)} sn`,
+      safe_hold: 'Güvenli bekleme · geçit korunuyor',
+      fading: 'Yankı sönüyor…',
+      cooldown: `Bekle · ${Math.ceil(state.secondsRemaining)} sn`,
+    };
+    const label = passage.isLatched && state.phase === 'inactive' ? 'Geçit kalıcı olarak güvenli' : labels[state.phase];
+    if (echoState!.textContent !== label) echoState!.textContent = label;
+    echoButton!.disabled = false; // Repeated Space is harmless, with an explicit explanation.
+  }
 
   let messageElapsed = 0;
   function tell(text: string): void {
@@ -144,7 +244,7 @@ async function startStage1(
   interactions.onFeedback = tell;
   interactions.onEvent = ({ id, label }) => {
     window.dispatchEvent(new CustomEvent('game:interact', { detail: { interactId: id } }));
-    tell(id === 'l01_door_main' ? 'Kapı şu an kapalı. Onu açacak kayıt henüz yok.' : `${label} incelendi. (Etkileşim olayı)`);
+    tell(id === 'l01_door_main' ? (nav.links.get(ENTRY_LINK_ID)?.enabled ? 'Kapı geçilebilir; içeride güvenli çıkış var.' : 'Kapı kayıp. Turkuaz izde zil kasetini çal.') : `${label} incelendi. (Etkileşim olayı)`);
   };
 
   const hoverMaterials = new Map<string, { material: THREE.MeshStandardMaterial; emissive: THREE.Color }>();
@@ -182,7 +282,6 @@ async function startStage1(
   });
   renderer.domElement.addEventListener('pointerleave', () => hover(null));
 
-  let paused = document.hidden;
   renderer.domElement.addEventListener('pointerdown', event => {
     if (paused || event.button !== 0) return;
     const allHits = hits(event);
@@ -229,7 +328,7 @@ async function startStage1(
     last = performance.now();
   });
 
-  const api: Stage1Debug = {
+  const api: Stage2Debug = {
     position: () => [player.position.x, player.position.y + 0.65, player.position.z],
     paused: () => paused,
     drawCalls: () => renderer.info.render.calls,
@@ -239,6 +338,9 @@ async function startStage1(
     route: () => player.route.map(node => node.id),
     cell: () => player.cell?.id ?? null,
     doorEnabled: () => nav.links.get(ENTRY_LINK_ID)?.enabled ?? false,
+    echo: () => echo.snapshot,
+    entryLatched: () => passage.isLatched,
+    cassette: () => [...ownedTapes].join(','),
     eventIds: () => interactions.events.map(e => e.id),
     meshIds: () => [...meshMap.keys()].sort(),
     hoverId: () => interactions.hoverId,
@@ -248,12 +350,21 @@ async function startStage1(
       return [rect.left + (p.x + 1) * rect.width / 2, rect.top + (1 - p.y) * rect.height / 2];
     },
   };
-  if (showDebug) { window.__stage0 = api; window.__stage1 = api; panel.hidden = false; }
+  if (showDebug) { window.__stage0 = api; window.__stage1 = api; window.__stage2 = api; panel.hidden = false; }
 
   const direction = new THREE.Vector3();
   function fixedUpdate(dt: number): void {
     direction.copy(input.direction(camera));
     player.fixedUpdate(dt, direction.x, direction.z);
+    if (!passage.isLatched && player.position.x > 2.28 && player.position.x < 3.78 &&
+      player.position.z > -2.72 && player.position.z < 0.72) {
+      passage.latch();
+      puzzleFlags.add('l01_interior_reached'); // temporary in-session latch, not a Stage 3 save.
+    }
+    echo.fixedUpdate(dt, () =>
+      Math.abs(player.position.x - 2) <= 0.47 && Math.abs(player.position.z + 0.5) <= 0.78);
+    updateDoorAppearance();
+    updateEchoHud();
     ada.position.set(player.position.x, player.position.y + 0.65, player.position.z);
     if (!player.movingToTarget) marker.visible = false;
     if (messageElapsed > 0) {
@@ -274,7 +385,7 @@ async function startStage1(
       frames++; sampleTime += dt;
       if (sampleTime >= 0.5) {
         measuredFps = Math.round(frames / sampleTime);
-        panel.textContent = `FPS: ${measuredFps}\nDraw calls: ${renderer.info.render.calls}\nTriangles: ${renderer.info.render.triangles}\nDPR: ${Math.min(window.devicePixelRatio || 1, MAX_DPR).toFixed(1)}\nNav: ${player.cell?.id ?? 'none'}\nDoor: CLOSED`;
+        panel.textContent = `FPS: ${measuredFps}\nDraw calls: ${renderer.info.render.calls}\nTriangles: ${renderer.info.render.triangles}\nDPR: ${Math.min(window.devicePixelRatio || 1, MAX_DPR).toFixed(1)}\nNav: ${player.cell?.id ?? 'none'}\nDoor: ${nav.links.get(ENTRY_LINK_ID)?.enabled ? 'OPEN' : 'CLOSED'}\nEcho: ${echo.snapshot.phase}`;
         frames = 0; sampleTime = 0;
       }
     }
