@@ -1,54 +1,71 @@
 <!doctype html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#152531" />
-    <meta name="description" content="Son Kayıt: 04.17 — üç boyutlu izometrik hikâye-bulmaca oyununun Aşama 2 yankı çekirdeği prototipi." />
-    <title>SON KAYIT: 04.17 — Teknik Prototip</title>
-  </head>
-  <body>
-    <div id="app">
-      <main class="stage" aria-label="Son Kayıt: 04.17 teknik prototip sahnesi">
-        <div id="game-view" class="game-view" aria-label="İzometrik oyun sahnesi"></div>
-        <div class="shade shade-top" aria-hidden="true"></div>
-        <div class="shade shade-bottom" aria-hidden="true"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#10171c">
+  <title>BLOCKFRONT — Online Tactical FPS</title>
+  <meta name="description" content="Three.js ile 1v1-5v5 çevrimiçi blok karakterli taktik FPS. Üç harita, silahlar, bomba modu ve arkadaşlarınla özel odalar.">
+</head>
+<body>
+  <div id="game"></div>
+  <div id="vignette"></div>
+  <div id="damage-flash"></div>
+  <div id="toast" role="status"></div>
 
-        <header class="heading">
-          <div class="eyebrow"><span class="signal" aria-hidden="true"></span> YANKI PROTOTİPİ <span class="sep">/</span> AŞAMA 02</div>
-          <h1>SON KAYIT<span class="gold">: 04.17</span></h1>
-          <p class="subhead">Unutulmuş bir kasabaya atılan ilk adım.</p>
-        </header>
-
-        <aside class="control-help" aria-label="Kontroller">
-          <div class="control-title">HAREKET VE ETKİLEŞİM</div>
-          <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span class="or">veya</span> <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></p>
-          <p class="small"><span class="click-symbol" aria-hidden="true">◎</span> Zemine tıkla / dokun: yolu izleyerek yürü</p>
-          <p class="small"><kbd>E</kbd> Yakındaki nesneyi incele</p>
-          <p class="note">Bu aşamada zil kaseti deneme amaçlı hazırdır. Turkuaz iz A’ya yaklaş ve <strong>Space</strong> / Kaseti Çal ile kapıyı geçici geri getir. Kaset bulma ve hikâye Aşama 3’te gelecek.</p>
-        </aside>
-
-        <section id="echo-hud" class="echo-hud" aria-label="Kaset ve yankı kontrolü">
-          <div class="echo-tape"><span class="echo-icon" aria-hidden="true">▣</span><div><span class="echo-label">SEÇİLİ KASET</span><strong>Zil / bell</strong><output id="echo-state" aria-live="polite">Yankı noktasına yaklaş</output></div></div>
-          <button id="echo-control" class="echo-button" type="button" aria-label="Zil kasetini çal">▶ Kaseti Çal <span class="echo-key">SPACE</span></button>
-        </section>
-        <output id="feedback" class="feedback" role="status" aria-live="polite" hidden></output>
-        <output id="interaction-prompt" class="interaction-prompt" hidden></output>
-        <div class="scene-meta" aria-hidden="true">
-          <span>POSTANE / GRAYBOX</span>
-          <span class="hairline"></span>
-          <span>10 × 10 m</span>
+  <section id="screen-menu" class="full-screen">
+    <div class="menu-shell">
+      <header class="brand"><div class="logo-box">B<span>F</span></div><div><strong>BLOCKFRONT</strong><small>ONLINE TACTICAL ARENA</small></div><span class="live-pill">● ONLINE ONLY</span></header>
+      <div class="intro"><p class="eyebrow">TAKTİKSEL BLOK SAVAŞLARI</p><h1>HER RAUNT<br><em>YENİ BİR HİKÂYE.</em></h1><p class="intro-copy">Takımını kur, bölgeyi savun ya da bombayı yerleştir. Sadece gerçek oyuncular. Her karar önemli.</p><div class="feature-row"><span>01 — 1v1 / 5v5</span><span>02 — 3 HARİTA</span><span>03 — WEB MULTIPLAYER</span></div></div>
+      <div class="form-card">
+        <div class="card-top"><span>OYUNCU PROFİLİ</span><span class="tiny-dot">● SUNUCU GEREKLİ</span></div>
+        <label for="player-name">OYUNCU ADIN</label><input id="player-name" autocomplete="nickname" maxlength="18" placeholder="Oyuncu adını gir" value="">
+        <label>AVATAR / GÖRÜNÜM</label><div class="pick-row" id="skin-options"><button class="pick selected" data-skin="0"><i style="background:#8cc42c"></i> YEŞİL</button><button class="pick" data-skin="1"><i style="background:#ed4b23"></i> KIRMIZI</button><button class="pick" data-skin="2"><i style="background:#eea400"></i> TURUNCU</button></div>
+        <label>HARİTA SEÇ</label><div class="maps" id="map-options">
+          <button class="map-choice selected" data-map="sand"><b>01</b><strong>DUST QUARTER</strong><small>ÇÖL ŞEHRİ</small></button>
+          <button class="map-choice" data-map="harbor"><b>02</b><strong>DOCKYARD</strong><small>LİMAN</small></button>
+          <button class="map-choice" data-map="foundry"><b>03</b><strong>IRONWORKS</strong><small>FABRİKA</small></button>
         </div>
-        <output id="debug-panel" class="debug-panel" aria-label="Geliştirici performans bilgileri" hidden></output>
-        <section id="fallback" class="fallback" role="alert" hidden>
-          <div class="fallback-inner">
-            <span class="fallback-icon" aria-hidden="true">◈</span>
-            <h2>Bu cihazda 3D sahne açılamıyor</h2>
-            <p>SON KAYIT: 04.17, WebGL2 destekli güncel bir tarayıcı gerektirir. Tarayıcıyı güncellemeyi veya başka bir cihaz kullanmayı deneyin.</p>
-          </div>
-        </section>
-      </main>
+        <button id="create-room" class="primary-button">+ YENİ ODA OLUŞTUR</button>
+        <div class="or"><span>VEYA KODLA KATIL</span></div>
+        <div class="join-row"><input id="join-code" maxlength="5" placeholder="5 HANELİ KOD" autocomplete="off"><button id="join-room" class="outline-button">KATIL →</button></div>
+        <p class="hint">Oda kodunu arkadaşlarınla paylaş. İki takımda en az bir oyuncu olduğunda başlayabilirsin.</p>
+      </div>
+      <footer class="menu-footer">BLOCKFRONT v1.0 · THREE.JS · SOCKET.IO <span>ORİJİNAL BLOK FPS</span></footer>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </section>
+
+  <section id="screen-lobby" class="full-screen hidden">
+    <div class="lobby-shell">
+      <header class="brand"><div class="logo-box">B<span>F</span></div><div><strong>BLOCKFRONT</strong><small>ÖZEL MAÇ LOBİSİ</small></div></header>
+      <div class="lobby-title"><div><p class="eyebrow">ARKADAŞLARINI DAVET ET</p><h2>HAZIR MISIN?</h2></div><div class="room-code"><span>ODA KODU</span><strong id="room-code">-----</strong><button id="copy-room" class="small-button">KOPYALA</button></div></div>
+      <div class="lobby-layout">
+        <div class="lobby-left"><div class="lobby-toolbar"><span>HARİTA</span><select id="lobby-map"><option value="sand">Dust Quarter</option><option value="harbor">Dockyard</option><option value="foundry">Ironworks</option></select></div><div class="team-columns">
+          <div class="team-list"><h3 class="attack">◆ AKINCILAR <span id="count-a">0/5</span></h3><div id="roster-a" class="roster"></div><button class="team-join" data-team="A">AKINCILARA GEÇ</button></div>
+          <div class="team-list"><h3 class="defense">◈ MUHAFIZLAR <span id="count-b">0/5</span></h3><div id="roster-b" class="roster"></div><button class="team-join" data-team="B">MUHAFIZLARA GEÇ</button></div>
+        </div><p class="hint" id="lobby-status">En az 1v1, en çok 5v5. Bot bulunmaz.</p></div>
+        <aside class="lobby-right"><p class="eyebrow">MAÇ KURALLARI</p><div class="rule"><strong>08</strong><span>KAZANILAN RAUNT<br>MAÇI BİTİRİR</span></div><div class="rule"><strong>40s</strong><span>BOMBA ZAMANI</span></div><div class="rule"><strong>5v5</strong><span>MAKSİMUM TAKIM</span></div><div class="rule"><strong>3</strong><span>ÖZGÜN HARİTA</span></div><div class="lobby-buttons"><button id="start-match" class="primary-button">MAÇI BAŞLAT →</button><button id="leave-room" class="outline-button">ODADAN AYRIL</button></div></aside>
+      </div>
+    </div>
+  </section>
+
+  <div id="hud" class="hidden">
+    <div class="top-hud"><div class="team-score team-a"><span>AKINCILAR</span><strong id="score-a">0</strong></div><div class="round-center"><span id="phase-text">RAUNT 1</span><strong id="round-timer">02:15</strong><small id="map-name">DUST QUARTER</small></div><div class="team-score team-b"><strong id="score-b">0</strong><span>MUHAFIZLAR</span></div></div>
+    <div class="left-hud"><canvas id="minimap" width="190" height="190"></canvas><div class="map-caption">TAKTİK RADAR <span>● LIVE</span></div></div>
+    <div class="killfeed" id="killfeed"></div>
+    <div class="crosshair" id="crosshair"><i></i><i></i><i></i><i></i></div>
+    <div id="hitmarker" class="hitmarker hidden">✕</div>
+    <div id="interaction" class="interaction hidden"><span id="interaction-label">Bomba kuruluyor</span><div class="progress-bg"><div id="interaction-progress"></div></div></div>
+    <div id="spectator" class="spectator hidden">ELENDİN · TAKIM ARKADAŞIN İZLENİYOR</div>
+    <div id="round-banner" class="round-banner hidden"></div>
+    <div class="bottom-hud"><div class="vitals"><div class="vital-label">SAĞLIK / ZIRH</div><div class="vital"><span>✚</span><strong id="hp">100</strong><span>⬡</span><strong id="armor">0</strong></div></div><div class="hud-hint">WASD HAREKET · SHIFT KOŞ · SPACE ZIPLA · E ETKİLEŞİM<br>B SATIN AL · 1–4 SİLAH · R DOLDUR · TAB SKOR</div><div class="ammo-panel"><span id="weapon-name">RAVEN 9</span><div class="ammo"><strong id="ammo">15</strong><span>/ <b id="reserve">60</b></span></div><small id="money">$800</small></div></div>
+    <div id="objective" class="hidden"></div>
+    <div id="buy-prompt">B — SİLAH MAĞAZASI</div>
+    <div id="pointer-prompt" class="hidden">OYUNA DÖNMEK İÇİN TIKLA</div>
+    <div class="chat-area" id="chat-area"><div id="chatlog"></div><input id="chatinput" class="hidden" placeholder="Mesaj yaz ve Enter'a bas..." maxlength="120" autocomplete="off"></div>
+  </div>
+  <div id="buy-panel" class="modal hidden"><div class="modal-card"><div class="modal-head"><div><p class="eyebrow">EKİPMAN / SATIN ALMA</p><h2>SİLAH DEPOSU</h2></div><button id="close-buy" class="close">ESC ✕</button></div><p>Her raunt başında ekipman seç. Satın alımlar yalnızca hazırlık süresinde geçerlidir.</p><div id="buy-items" class="buy-grid"></div></div></div>
+  <div id="scoreboard" class="modal hidden"><div class="modal-card"><div class="modal-head"><div><p class="eyebrow">MAÇ İSTATİSTİKLERİ</p><h2>SKOR TABLOSU</h2></div><div id="score-label">0 — 0</div></div><div id="score-rows"></div></div></div>
+  <script type="module" src="/client/main.js"></script>
+</body>
 </html>

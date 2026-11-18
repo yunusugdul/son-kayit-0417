@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: blockfront-arena
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.16.0

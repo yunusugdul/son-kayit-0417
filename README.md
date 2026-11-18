@@ -1,59 +1,82 @@
-# SON KAYIT: 04.17
+# BLOCKFRONT — Online Tactical Arena
 
-Three.js + TypeScript + Vite ile hazırlanan, web tabanlı 3D izometrik hikâye-bulmaca oyunu. **Şu an Aşama 2 yankı çekirdeği prototipi** vardır: ortografik 3D postane, güvenli NavGraph/A* yürüme, etkileşim, süreli zil yankısı, SAFE_HOLD geçit güvenliği, WebGL2 kontrolü ve performans paneli. Tam L01 hikâyesi, gerçek kaset toplama ve checkpoint henüz yoktur.
+Üç özgün haritada gerçek oyuncularla **1v1–5v5 tarayıcı tabanlı taktiksel FPS**. Three.js ile 3B grafikler, Socket.IO ile WebSocket tabanlı çok oyunculu oyun. Avatarlar kullanıcı tarafından sağlanan kübik/voxel görsel tarzına göre kodla modellenmiştir. CS 1.5'in maç ritminden esinlenir, ancak isimler, haritalar, modeller ve oyun kodu özgündür.
 
-> Tasarım sözleşmesi: [`docs/game-design.md`](docs/game-design.md), özellikle **§4.2–4.3**, **§17 AŞAMA 2** ve **§18**.
+## Oynanış
+- **Sadece çevrimiçi:** Tek oyuncu, bot veya çevrimdışı mod yok. Maça başlamak için her takımda en az bir gerçek oyuncu gerekir.
+- **Maksimum 10 kişi:** Akıncılar (A) ve Muhafızlar (B) takımlarının her biri en fazla 5 oyuncu.
+- **3 harita:** Dust Quarter (çöl), Dockyard (liman), Ironworks (fabrika).
+- **Bomba modu:** Akıncıların rastgele bir üyesi bombayla doğar. Bombayı A veya B bölgesine kurmak için E'yi 4 saniye tut; Muhafızlar bombayı 6 saniyede çözer. Bomba 40 saniyede patlar. Bombayı taşıyan ölürse bomba düşer; takım arkadaşı E ile alabilir.
+- **Silahlar:** Raven 9 tabanca, Vektor SMG, AR-41 tüfek, Longshot keskin nişancı, Bulldog 12 pompalı, Bastion ağır makineli, Combat Knife ve Frag Grenade. Her silahın hasarı, atış hızı, şarjörü, yeniden doldurma süresi ve menzili farklıdır.
+- **Raunt sistemi:** 16 saniye satın alma, 135 saniye raunt, 40 saniye bomba, raunt aralarında 6 saniye. 8 raunt kazanan maçın galibi.
+- **Ekonomi:** Başlangıç $800, galibiyet +$3250, mağlubiyet +$1500, üst sınır $16000. Zırh, bomba ve birincil silahlar satın alınır.
+- **Çevrimiçi lobiler:** Beş karakterlik özel oda kodu; takımlar, host tarafından harita seçimi, takım değiştirme, sohbet, skor tablosu.
+- **Görseller:** Three.js WebGL voxel karakterler, gölgeler, silah modelleri, izleyici kamerası, radar, patlama ve isabet efektleri.
 
-## Geliştirme
+## Başlatma
 
-**Node.js 26 LTS** ve npm gerektirir (öneri: `nvm use` veya `.nvmrc`).
+Node.js **22 veya üzeri** gerekir.
 
-```bash
-npm ci
+~~~bash
+npm install
 npm run dev
-```
+~~~
 
-Yerel Vite adresini tarayıcıda açın. Kısayollar: WASD veya ok tuşları; zemine fareyle tıklama veya dokunma. Performans paneli `dev` modunda görünür. Üretim sürümünde ölçüm için `?debug=1` eklenebilir.
+Tarayıcıda http://localhost:3000 adresine git. Aynı sunucuyu açan iki farklı **gerçek tarayıcı** veya cihazla oda kodunu paylaşarak en az 1v1 oynanabilir. Yerel sunucuda deneme geliştirme/test amaçlıdır; internet üzerinden arkadaşlarla oynamak için sunucuyu herkese açık HTTPS/WSS destekli bir Node hizmetine kurmalısın.
 
-```bash
-npm run typecheck
+Üretim:
+~~~bash
+npm install
 npm run build
-npm run preview
-npm run report:sizes
-npm run test:e2e
-```
+npm start
+~~~
 
-`npm run test:e2e` öncesi `npx playwright install chromium` gerekir. Playwright testleri `dist/` çıktısını Vite preview üzerinden sınar.
+Sunucu PORT ortam değişkenini kullanır (varsayılan 3000). İstemci ve Socket.IO **aynı alan adından** servis edilir; GitHub Pages tek başına yeterli değildir, çünkü WebSocket sunucusu çalıştırmaz.
 
-## Dağıtım
+## Render'da dağıtım
+Bu repodaki render.yaml bir **Web Service** tanımlar. Render üzerinden New > Blueprint seçip repoyu bağla; Build: npm install && npm run build, Start: npm start, Node 22. Canlı HTTPS adresi Render tarafından atanır. Servis uykuya girerse odalar kaybolabilir; çok sayıda eşzamanlı oda için kalıcı durum depolama ve yatay ölçekleme ayrıca gerekir.
 
-`main` dalına push, `.github/workflows/deploy.yml` aracılığıyla derleme, tarayıcı smoke testi, ekran görüntüsü/performans raporu ve GitHub Pages dağıtımını dener. Repo Pages kaynağı **GitHub Actions** olarak seçilmelidir (Settings → Pages → Build and deployment → Source). Site etkinleştiğinde hedef URL: https://yunusugdul.github.io/son-kayit-0417/.
+## Tuşlar
 
-Workflow ilk çalışmada, kilit dosyası yoksa npm ile `package-lock.json` üretip repo'ya commit eder. Sonraki çalışmalarda `npm ci` kullanılır; sürüm güncellemesi ayrı PR ile yapılır. Kullanıcı/test verileri hiçbir sunucuya gönderilmez.
+| Tuş | Eylem |
+| --- | --- |
+| WASD / Fare | Hareket / Nişan |
+| Sol tık | Ateş / Bıçak / Bomba fırlatma |
+| Shift / Ctrl | Koş / Eğil |
+| Space | Zıpla |
+| E | Bombayı kur, çöz veya al (basılı tut) |
+| B | Satın alma menüsü (hazırlık aşamasında) |
+| 1, 2, 3, 4 / G | Birincil, tabanca, bıçak, bomba |
+| R | Şarjör değiştir |
+| Tab | Skor tablosu |
+| Enter | Genel sohbet |
+| Esc | Menüden çık / fareyi bırak |
 
-## Bilinçli kapsam sınırı
+İlk tık imleci FPS kamerasına kilitler. Oyun klavye/fare ile masaüstü tarayıcıları hedefler.
 
-Aşama 0'da **NavGraph/A\***, engeller, kaset, yankı, kayıt sistemi, hikâye akışı ve GLB yoktur. Tıkla-git **yalnızca boş başlangıç zemini için geçerli bir raycast prototipidir**. Aşama 1'de tüm hareket tek gezinme modeli üzerinden güvenli yola dönüştürülecektir.
+## Sistem mimarisi
 
-## Dosyalar
+~~~text
+index.html             Vite giriş, HUD, lobi
+client/main.js         Three.js render, blok avatarlar, input, radar, UI
+client/style.css       Arayüz ve responsive stiller
+shared/rules.js        Haritalar, silahlar, çarpışma ve ışın testleri
+server/index.js        Node/Express + Socket.IO otoriter simülasyon
+tests/rules.test.js    Harita, silah, çarpışma, ışın testleri
+render.yaml            Render dağıtım tanımı
+~~~
 
-- `src/main.ts`: başlatma, WebGL2 kontrolü, ortografik sahne, kontroller, tek sabit adımlı loop, debug.
-- `src/style.css`: DOM katmanı, mobil görünüm ve hata ekranı.
-- `tests/e2e/stage0.spec.ts`: görünürlük, klavye, tıklama, resize, WebGL2 fallback, mobil smoke kontrolleri.
-- `docs/decisions.md`: mimari karar günlüğü.
-- `docs/test-plan.md`: Aşama 0 doğrulama ve test sınırları.
+Tarayıcı yalnızca tuş ve kamera yönünü gönderir. Sunucu pozisyonları, çarpışmaları, mermileri/hasarı, ekipmanı, parayı, bomba/raunt sonuçlarını doğrular ve yaklaşık 10 Hz anlık görüntüleri yayınlar. İstemci kendi yürüyüşünü öngörür ve sunucu düzeltmelerine yaklaşır. İsimler ve mesajlar sınırlanır.
 
+## Geliştirme / test
+~~~bash
+npm test
+npm run check
+npm run build
+~~~
 
-## Aşama 1 — yürünebilir postane graybox
+## Bilinen üretim sınırları
 
-Sahne açıldığında Ada'yı WASD veya oklarla kamera yönünde yürüt. Zemine tıklama 10×10 nav grafiği ve A* üzerinden güvenli yol bulur; postane kapalı olduğundan içine rota çizilmez. Posta kutusuna tıkla (uzaktan yaklaşır) veya yakında `E` tuşuna bas. Olay, `game:interact` olarak yayınlanır; Aşama 2 öncesinde bulmaca etkinleştirmez.
+Bu sürüm **oynanabilir çok oyunculu temel oyun projesidir**, CS 1.5'in tüm özelliklerinin tamamlanmış ticari muadili değildir. Henüz hesap sistemi, sıralamalı eşleştirme, sesli iletişim, mobil kontroller, oyuncu profili/kalıcı istatistik, rekabetçi seviyede hile önleme, çok sunuculu oda senkronizasyonu, geri bağlanıp maç devam ettirme ve profesyonel animasyon/ses varlıkları içermez. Oyun odaları **RAM'de tutulur** ve sunucu yeniden başladığında silinir. Birden fazla sunucu kopyası kullanılmamalı; Socket.IO uyumlu merkezi oda/mesaj altyapısı eklenmeden yatay ölçeklenmez.
 
-Kontroller: `npm run check:assets`, `npm run test:unit`, `npm run build`, `npm run test:e2e`.
-
-Üretim dosyası `public/content/l01/geometry.glb` yalnızca adlandırılmış bir graybox modelidir; kaynak `source-assets/levels/generate-graybox.py` içinde. Blender'dan kalıcı export yapılması ayrı sanat görevidir; bkz. `docs/stage1-status.md`.
-
-## Aşama 2 — yankı çekirdeği
-
-Postane girişindeki **turkuaz yankı izine** yaklaşarak `Space` veya **Kaseti Çal** düğmesini kullan. Başlangıçta yalnız test amaçlı `bell` kaseti hazırdır; doğru mesafede çalınca silinmiş kapı 0,4 saniyede oluşur, 12 saniye açık kalır, ardından 0,6 saniyede kaybolur ve 1,5 saniyelik beklemeye girer. Tekrar Space süreyi yenilemez. Kapı geçidindeyken `SAFE_HOLD` süreyi durdurur; içeri girildiyse geri çıkış kalıcı güvenli hale gelir. Mobilde düğmeyle aynı işlem yapılabilir.
-
-`EchoSystem` ve `EchoPassage` birim testleri ile `tests/e2e/stage2.spec.ts` tarayıcı testleri eklendi. Kayıt toplama, ikinci basamağın gerçek oyun akışı, checkpoint ve hikâye **Aşama 3** içindir. Ayrıntılı durum: [`docs/stage2-status.md`](docs/stage2-status.md).
+Kod/varlıklar özgündür; Counter-Strike'a ait marka, model, harita, ses veya dosyalar kullanılmamıştır.
