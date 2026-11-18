@@ -8,6 +8,7 @@ const SPEED = 2.7;
 
 export class PlayerController {
   readonly position = new THREE.Vector3(-3.5, 0, 2.5);
+  floorIndex = 0;
   private path: NavNode[] = [];
   private waypoint = 0;
   private targetRevision = 0;
@@ -22,13 +23,20 @@ export class PlayerController {
 
   get movingToTarget(): boolean { return this.waypoint < this.path.length; }
   get route(): readonly NavNode[] { return this.path; }
-  get cell(): NavNode | null { return this.graph.contains(this.position.x, this.position.z); }
+  get cell(): NavNode | null { return this.graph.contains(this.position.x, this.position.z, this.floorIndex); }
+  resetTo(x: number, z: number, floorIndex = 0): void {
+    const cell = this.graph.contains(x, z, floorIndex);
+    if (!cell) throw new Error('Checkpoint is not on a safe nav cell');
+    this.cancelPath();
+    this.floorIndex = floorIndex;
+    this.position.set(x, cell.worldY, z);
+  }
 
   cancelPath(): void { this.path = []; this.waypoint = 0; this.onArrive = null; }
 
-  moveTo(x: number, z: number, onArrive?: () => void): boolean {
+  moveTo(x: number, z: number, onArrive?: () => void, floorIndex = 0): boolean {
     const from = this.cell;
-    const goal = this.graph.contains(x, z);
+    const goal = this.graph.contains(x, z, floorIndex);
     if (!from || !goal) return false;
     const path = findPath(this.graph, from.id, goal.id);
     if (!path) return false;
@@ -44,7 +52,7 @@ export class PlayerController {
 
   private collides(x: number, z: number): boolean {
     if (x < -5 + RADIUS || x > 5 - RADIUS || z < -5 + RADIUS || z > 5 - RADIUS) return true;
-    for (const wall of this.obstacles) {
+    for (const wall of this.floorIndex === 0 ? this.obstacles : []) {
       const nearX = THREE.MathUtils.clamp(x, wall.minX, wall.maxX);
       const nearZ = THREE.MathUtils.clamp(z, wall.minZ, wall.maxZ);
       if ((x - nearX) ** 2 + (z - nearZ) ** 2 < RADIUS ** 2) return true;
@@ -54,7 +62,7 @@ export class PlayerController {
 
   private stepAxis(dx: number, dz: number): boolean {
     const x = this.position.x + dx, z = this.position.z + dz;
-    const from = this.cell, to = this.graph.contains(x, z);
+    const from = this.cell, to = this.graph.contains(x, z, this.floorIndex);
     if (!from || !to || !this.graph.canTraverse(from.id, to.id) || this.collides(x, z)) return false;
     this.position.set(x, to.worldY, z);
     return true;
@@ -76,6 +84,20 @@ export class PlayerController {
     const target = this.path[this.waypoint];
     const deltaX = target.x - this.position.x, deltaZ = target.z - this.position.z;
     const distance = Math.hypot(deltaX, deltaZ);
+    if (target.floorIndex !== this.floorIndex) {
+      // Inter-floor traversal is allowed ONLY through an active explicit NavLink.
+      if (!this.cell || !this.graph.canTraverse(this.cell.id, target.id) || distance >= 0.08) {
+        this.cancelPath(); return;
+      }
+      this.floorIndex = target.floorIndex;
+      this.position.y = target.worldY;
+      this.waypoint++;
+      if (!this.movingToTarget) {
+        const callback = this.onArrive;
+        this.cancelPath(); callback?.();
+      }
+      return;
+    }
     if (distance < 0.035) {
       this.waypoint++;
       if (!this.movingToTarget) {

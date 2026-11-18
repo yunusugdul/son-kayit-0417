@@ -21,6 +21,10 @@ export class EchoPassage {
   get isLatched(): boolean { return this.latched; }
   get isPassable(): boolean { return this.passable; }
   latch(): void { this.latched = true; this.apply(this.lastSnapshot); }
+  reset(): void { this.latched = false; this.apply({
+    phase: 'inactive', anchorId: null, groupId: null,
+    secondsRemaining: 0, visualProgress: 0, traversable: false,
+  }); }
 
   private lastSnapshot: EchoSnapshot = {
     phase: 'inactive', anchorId: null, groupId: null, secondsRemaining: 0, visualProgress: 0, traversable: false,

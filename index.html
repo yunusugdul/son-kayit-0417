@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#152531" />
-    <meta name="description" content="Son Kayıt: 04.17 — üç boyutlu izometrik hikâye-bulmaca oyununun Aşama 2 yankı çekirdeği prototipi." />
-    <title>SON KAYIT: 04.17 — Teknik Prototip</title>
+    <meta name="description" content="Son Kayıt: 04.17 — üç boyutlu izometrik hikâye-bulmaca oyununun Aşama 3 Çalmayan Zil oynanabilir hikâye-bulmaca kesiti." />
+    <title>SON KAYIT: 04.17 — Çalmayan Zil</title>
   </head>
   <body>
     <div id="app">
@@ -15,7 +15,7 @@
         <div class="shade shade-bottom" aria-hidden="true"></div>
 
         <header class="heading">
-          <div class="eyebrow"><span class="signal" aria-hidden="true"></span> YANKI PROTOTİPİ <span class="sep">/</span> AŞAMA 02</div>
+          <div class="eyebrow"><span class="signal" aria-hidden="true"></span> ÇALMAYAN ZİL <span class="sep">/</span> AŞAMA 03</div>
           <h1>SON KAYIT<span class="gold">: 04.17</span></h1>
           <p class="subhead">Unutulmuş bir kasabaya atılan ilk adım.</p>
         </header>
@@ -25,12 +25,50 @@
           <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span class="or">veya</span> <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></p>
           <p class="small"><span class="click-symbol" aria-hidden="true">◎</span> Zemine tıkla / dokun: yolu izleyerek yürü</p>
           <p class="small"><kbd>E</kbd> Yakındaki nesneyi incele</p>
-          <p class="note">Bu aşamada zil kaseti deneme amaçlı hazırdır. Turkuaz iz A’ya yaklaş ve <strong>Space</strong> / Kaseti Çal ile kapıyı geçici geri getir. Kaset bulma ve hikâye Aşama 3’te gelecek.</p>
+          <p class="note">Posta kutusundaki kaseti bul; turkuaz izlerde <strong>Space</strong> ile çal. İçerideki notu oku, sonra ikinci yankı basamaklarıyla üst rafa çık. <strong>H</strong>: ipucu, <strong>Esc</strong>: duraklat.</p>
         </aside>
 
         <section id="echo-hud" class="echo-hud" aria-label="Kaset ve yankı kontrolü">
-          <div class="echo-tape"><span class="echo-icon" aria-hidden="true">▣</span><div><span class="echo-label">SEÇİLİ KASET</span><strong>Zil / bell</strong><output id="echo-state" aria-live="polite">Yankı noktasına yaklaş</output></div></div>
+          <div class="echo-tape"><span class="echo-icon" aria-hidden="true">▣</span><div><span class="echo-label">SEÇİLİ KASET</span><strong id="tape-name">Kaset henüz bulunmadı</strong><output id="echo-state" aria-live="polite">Yankı noktasına yaklaş</output></div></div>
           <button id="echo-control" class="echo-button" type="button" aria-label="Zil kasetini çal">▶ Kaseti Çal <span class="echo-key">SPACE</span></button>
+        </section>
+        <button id="pause-control" class="pause-control" type="button" aria-label="Oyunu duraklat">II Duraklat</button>
+        <button id="hint-control" class="hint-control" type="button">? İpucu (H)</button>
+        <section id="subtitle-box" class="subtitle-box" aria-label="Hikâye ve altyazılar" hidden>
+          <p id="subtitle" role="status" aria-live="polite"></p>
+          <button id="subtitle-dismiss" type="button">Devam et ↵</button>
+        </section>
+        <section id="menu-overlay" class="overlay" aria-label="Ana menü">
+          <div class="menu-card">
+            <p class="menu-kicker">SESİN HATIRLADIĞI BİR KASABA</p>
+            <h2>Çalmayan Zil</h2>
+            <p>Kaybolmuş postane kapısının izini sür. Ada'nın kardeşi Efe'den gelen son kaydı bul.</p>
+            <button id="menu-new" type="button">Yeni Oyun</button>
+            <button id="menu-continue" type="button" disabled>Devam Et</button>
+            <div class="menu-files">
+              <button id="export-control" type="button">Kaydı dışa aktar (.json)</button>
+              <button id="import-control" type="button">Kayıt içe aktar</button>
+              <input id="import-file" type="file" accept=".json,application/json" hidden aria-label="Kayıt JSON seç" />
+            </div>
+            <p id="storage-warning" class="storage-warning" hidden></p>
+          </div>
+        </section>
+        <section id="pause-overlay" class="overlay" aria-label="Duraklatma menüsü" hidden>
+          <div class="menu-card">
+            <h2>Duraklatıldı</h2>
+            <p>İlerleme güvenli kontrol noktalarında kaydedilir.</p>
+            <button id="resume-control" type="button">Devam Et (Esc)</button>
+            <button id="menu-control" type="button">Ana Menü</button>
+            <button id="pause-export" type="button">Kaydı dışa aktar</button>
+          </div>
+        </section>
+        <section id="completion-overlay" class="overlay" aria-label="Bölüm tamamlandı" hidden>
+          <div class="menu-card">
+            <p class="menu-kicker">KAYIT BULUNDU</p>
+            <h2>Çalmayan Zil tamamlandı</h2>
+            <p>Efe'nin sesini buldun. L02 — Kapatılan Fırın açıldı; bu bölüm henüz geliştirme aşamasında.</p>
+            <button id="completion-menu" type="button">Ana Menüye Dön</button>
+          </div>
         </section>
         <output id="feedback" class="feedback" role="status" aria-live="polite" hidden></output>
         <output id="interaction-prompt" class="interaction-prompt" hidden></output>

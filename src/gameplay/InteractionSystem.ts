@@ -4,7 +4,7 @@ import { findPath } from './Pathfinding';
 import { PlayerController } from './PlayerController';
 import type { BarrierRect } from './Stage1Layout';
 
-export interface Interactable { id: string; position: THREE.Vector3; mesh: THREE.Object3D; label: string }
+export interface Interactable { id: string; position: THREE.Vector3; mesh: THREE.Object3D; label: string; floorIndex?: number }
 export interface InteractionEvent { id: string; label: string }
 const REACH = 1.6;
 
@@ -49,7 +49,7 @@ export class InteractionSystem {
 
   canInteract(item: Interactable): boolean {
     const d = Math.hypot(item.position.x - this.player.position.x, item.position.z - this.player.position.z);
-    return d <= REACH && !this.walls.some(wall => segmentIntersectsBox(
+    return (item.floorIndex ?? 0) === this.player.floorIndex && d <= REACH && !this.walls.some(wall => segmentIntersectsBox(
       this.player.position.x, this.player.position.z, item.position.x, item.position.z, wall,
     ));
   }
@@ -74,14 +74,14 @@ export class InteractionSystem {
     let best: { node: NavNode; score: number } | null = null;
     for (const node of this.graph.nodes.values()) {
       const distance = Math.hypot(node.x - item.position.x, node.z - item.position.z);
-      if (!node.walkable || distance > REACH - 0.15 || distance < 0.2) continue;
+      if (!node.walkable || node.floorIndex !== (item.floorIndex ?? 0) || distance > REACH - 0.15 || distance < 0.2) continue;
       if (this.walls.some(wall => segmentIntersectsBox(node.x, node.z, item.position.x, item.position.z, wall))) continue;
       const path = findPath(this.graph, start.id, node.id);
       if (!path) continue;
       const score = path.length + distance * 0.1;
       if (!best || score < best.score) best = { node, score };
     }
-    if (!best || !this.player.moveTo(best.node.x, best.node.z, () => this.emit(item))) {
+    if (!best || !this.player.moveTo(best.node.x, best.node.z, () => this.emit(item), best.node.floorIndex)) {
       this.onFeedback?.('Bu nesneye ulaşılabilecek açık bir yol yok.'); return false;
     }
     return true;
