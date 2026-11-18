@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "id": "l01_post_office",
+  "titleKey": "levels.l01.title",
+  "assetManifest": "content/l01/manifest.json",
+  "camera": {
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "orthoHeight": 12,
+    "azimuthDeg": 45,
+    "elevationDeg": 35
+  },
+  "spawn": {
+    "checkpointId": "cp_l01_start",
+    "position": [
+      -3.5,
+      0,
+      2.5
+    ]
+  },
+  "checkpoints": [
+    {
+      "id": "cp_l01_start",
+      "position": [
+        -3.5,
+        0,
+        2.5
+      ]
+    },
+    {
+      "id": "cp_l01_interior",
+      "position": [
+        2.5,
+        0,
+        -0.5
+      ],
+      "requiredFlags": [
+        "l01_interior_reached"
+      ]
+    }
+  ],
+  "echoAnchors": [
+    {
+      "id": "l01_echo_a",
+      "tapeId": "bell",
+      "echoGroupId": "l01_entry",
+      "activeSeconds": 12,
+      "cooldownSeconds": 1.5,
+      "activationRadius": 1.6
+    },
+    {
+      "id": "l01_echo_b",
+      "tapeId": "bell",
+      "echoGroupId": "l01_stairs",
+      "activeSeconds": 12,
+      "cooldownSeconds": 1.5,
+      "activationRadius": 1.6,
+      "requiredFlags": [
+        "l01_note_read"
+      ]
+    }
+  ],
+  "echoGroups": [
+    {
+      "id": "l01_entry",
+      "objectIds": [
+        "l01_door_main"
+      ],
+      "navigationLinkIds": [
+        "l01_link_entry"
+      ],
+      "supportObjectIds": [],
+      "protectedVolumeIds": [
+        "l01_door_main_passage"
+      ]
+    },
+    {
+      "id": "l01_stairs",
+      "objectIds": [
+        "l01_stair_a",
+        "l01_stair_b"
+      ],
+      "navigationLinkIds": [
+        "l01_link_upper"
+      ],
+      "supportObjectIds": [
+        "l01_stair_a",
+        "l01_stair_b"
+      ],
+      "protectedVolumeIds": []
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "l01_collect_bell",
+      "when": {
+        "interactId": "l01_mailbox"
+      },
+      "then": [
+        {
+          "type": "grantTape",
+          "tapeId": "bell"
+        },
+        {
+          "type": "setFlag",
+          "flag": "l01_tape_found"
+        },
+        {
+          "type": "story",
+          "key": "story.l01.mailbox"
+        }
+      ]
+    },
+    {
+      "id": "l01_reach_interior",
+      "when": {
+        "triggerId": "l01_interior_trigger"
+      },
+      "then": [
+        {
+          "type": "setFlag",
+          "flag": "l01_interior_reached"
+        },
+        {
+          "type": "checkpoint",
+          "id": "cp_l01_interior"
+        },
+        {
+          "type": "showMessage",
+          "key": "ui.checkpoint"
+        }
+      ]
+    },
+    {
+      "id": "l01_read_note",
+      "when": {
+        "interactId": "l01_note_counter"
+      },
+      "then": [
+        {
+          "type": "setFlag",
+          "flag": "l01_note_read"
+        },
+        {
+          "type": "story",
+          "key": "story.l01.note"
+        }
+      ]
+    },
+    {
+      "id": "l01_finish",
+      "when": {
+        "interactId": "l01_efe_tape"
+      },
+      "then": [
+        {
+          "type": "setFlag",
+          "flag": "l01_record_found"
+        },
+        {
+          "type": "story",
+          "key": "story.l01_efe_01"
+        },
+        {
+          "type": "setFlag",
+          "flag": "l01_complete"
+        },
+        {
+          "type": "completeLevel"
+        }
+      ]
+    }
+  ]
+}

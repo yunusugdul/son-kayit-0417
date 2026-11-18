@@ -1,0 +1,26 @@
+{
+  "levels": {
+    "l01": {
+      "title": "Çalmayan Zil"
+    }
+  },
+  "ui": {
+    "checkpoint": "İç postane kaydedildi. Artık kapı kapanınca içeride mahsur kalmazsın.",
+    "tapeNeeded": "Önce posta kutusundaki zil kasetini bul.",
+    "chooseAnchor": "Hangi yankı izinde olduğunu seçmek için işarete yaklaş.",
+    "noteNeeded": "İkinci iz ancak tezgâhtaki notu okuduğunda uyanır.",
+    "shelfNeeded": "Yukarıdaki rafa ulaşmak için ikinci yankı basamaklarını kullan.",
+    "saved": "İlerleme kaydedildi.",
+    "saveUnavailable": "Tarayıcı depolaması kapalı. Bu oturum çalışır; ilerlemeyi JSON olarak dışa aktar.",
+    "importFailed": "Kayıt dosyası geçersiz veya bu sürümle uyumsuz.",
+    "completed": "Çalmayan Zil tamamlandı. L02 açıldı (bölüm geliştirme aşamasında)."
+  },
+  "story": {
+    "l01": {
+      "intro": "Ada: Postanenin kapısı yok olmuş… Ama zil sesi hâlâ burada olabilir.",
+      "mailbox": "Ada: Eski zilin kaydı! Belki kaybolmuş kapının izi bu sesle yanıt verir.",
+      "note": "Tezgâh notu: «Üst raftaki makara gerçek bir sesi saklar. Girişteki zil izini içeride de ara.»"
+    },
+    "l01_efe_01": "Efe: «Ada, beni hatırla.»\nAda: «Efe? Bu kaset… buraya nasıl geldi?»"
+  }
+}
