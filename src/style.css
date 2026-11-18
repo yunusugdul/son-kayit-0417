@@ -88,3 +88,62 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
 .pause-control:focus-visible,.hint-control:focus-visible,.menu-card button:focus-visible,.subtitle-box button:focus-visible{outline:3px solid #edc386;outline-offset:3px}
 @media(max-width:800px){.pause-control{right:12px;top:12px}.hint-control{right:12px;top:62px}.subtitle-box{bottom:165px}.control-help{pointer-events:none}.heading{top:12px}.menu-card{padding:22px}}
 @media(max-width:450px){.pause-control,.hint-control{font-size:11px;min-height:42px;padding:7px 10px}.subtitle-box{bottom:166px}.subtitle-box p{font-size:13px}}
+
+/* Stage 4: low-poly coastal-night art direction. Keep HUD semantics and hit targets intact. */
+.stage {
+  background: radial-gradient(ellipse at 61% 35%, #425b62 0%, #213b47 44%, #112530 86%);
+}
+.shade-top { height: 25%; background: linear-gradient(to bottom, rgba(11,26,34,.58), transparent); }
+.shade-bottom { height: 30%; background: linear-gradient(to top, rgba(10,25,34,.82), transparent); }
+.heading h1 { font-size: clamp(29px, 3.15vw, 46px); text-shadow: 0 4px 23px rgba(0,0,0,.25); }
+.heading .eyebrow { color: #afd6c8; }
+.heading .gold { color: #f1be78; }
+.subhead { color: #d5d2c0; }
+.control-help {
+  padding: 17px 19px 16px 17px;
+  border-left: 2px solid rgba(231,183,106,.58);
+  background: linear-gradient(90deg, rgba(15,36,43,.67), rgba(15,36,43,.08));
+  border-radius: 0 12px 12px 0;
+  max-width: 405px;
+}
+.control-help .note { color: #bfd2c8; max-width: 350px; }
+.control-title { color: #ecd2a7; }
+.scene-meta { color: #c9d8c9; text-shadow: 0 2px 10px #091d25; }
+.echo-hud { border-color: #8bb8a6; background: rgba(20,41,48,.95); }
+.echo-tape strong { color: #f6dda8; }
+.echo-button { background: #296b65; }
+.echo-button:hover { background: #357e74; }
+.pause-control,.hint-control { border-color: #86a4a4; background: rgba(19,48,54,.9); }
+.menu-card {
+  border-color: #ad9f81;
+  background: linear-gradient(145deg, #213b43, #172d3a);
+  box-shadow: 0 26px 95px rgba(3,14,19,.65), inset 0 1px rgba(255,245,207,.07);
+}
+.menu-card h2 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -.025em; color: #f2c381; }
+.menu-kicker { color: #9cdac7; }
+.menu-card p { color: #d9e5dc; }
+.visual-settings { margin-top: 22px; border: 1px solid #53747a; border-radius: 10px; padding: 12px 14px; }
+.visual-settings legend { padding: 0 8px; color: #e3be83; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.visual-settings > label { display: block; color: #f0e9da; font-size: 13px; margin: 5px 0 8px; }
+.visual-settings select {
+  width: 100%; min-height: 45px; border-radius: 8px;
+  background: #163641; border: 1px solid #8fb2ad; color: #f2f5ed;
+  font: inherit; padding: 9px; cursor: pointer;
+}
+.visual-settings select:focus-visible,.visual-settings input:focus-visible { outline: 3px solid #eac189; outline-offset: 3px; }
+.visual-settings .ambience-toggle { display: flex; align-items: center; gap: 9px; margin-top: 13px; cursor: pointer; }
+.ambience-toggle input { min-width: 20px; min-height: 20px; accent-color: #58d7c4; }
+.visual-settings p { margin: 9px 0 1px; color: #a8c5c3; font-size: 11px; line-height: 1.5; }
+@media (max-width: 800px) {
+  .control-help { padding: 12px 7px 8px 10px; background: rgba(11,31,39,.57); max-width: calc(100vw - 245px); }
+  .control-help .small { line-height: 1.5; }
+  .heading h1 { font-size: clamp(25px, 5vw, 36px); }
+}
+@media (max-width: 450px) {
+  .control-help { padding: 8px 8px 7px 9px; max-width: calc(100vw - 194px); }
+  .control-help .note { line-height: 1.35; }
+  .heading { max-width: calc(100vw - 116px); }
+  .heading h1 { font-size: 26px; }
+  .heading .eyebrow { letter-spacing: .12em; font-size: 9px; }
+  .subhead { max-width: 210px; }
+}
