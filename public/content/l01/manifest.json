@@ -2,5 +2,5 @@
   "schemaVersion": 1,
   "geometry": "content/l01/geometry.glb",
   "audio": [],
-  "note": "Stage 1 Blender graybox; Stage 3 interaction props use small Three.js primitives."
+  "note": "Named Blender graybox GLB retained for navigation/puzzle IDs; Stage 4 modular low-poly render art is authored in src/visual/Stage4Art.ts and generated at runtime."
 }
