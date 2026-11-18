@@ -6,12 +6,19 @@ import { NAV_LAYOUT, ENTRY_LINK_ID } from '../../src/gameplay/Stage1Layout.ts';
 
 function graph() { return new NavGraph(NAV_LAYOUT); }
 
-test('10x10 grid has unique world-space nodes and closed entry', () => {
+test('10x10 ground grid plus two upper cells have unique IDs and closed links', () => {
   const nav = graph();
-  assert.equal(nav.nodes.size, 100);
+  assert.equal(nav.nodes.size, 102);
+  assert.equal(nav.nodes.get(cellId(7, 3, 1))?.worldY, 1.4);
+  assert.equal(nav.links.get('l01_link_upper')?.enabled, false);
   assert.equal(nav.links.get(ENTRY_LINK_ID)?.enabled, false);
   assert.equal(nav.contains(-3.5, 2.5)?.id, cellId(1, 7));
   assert.equal(nav.contains(99, 0), null);
+  assert.equal(nav.contains(2.5,-1.5,1)?.id,cellId(7,3,1));
+  nav.setLinkEnabled('l01_link_upper',true);
+  assert.ok(findPath(nav,cellId(7,3),cellId(8,3,1)));
+  nav.setLinkEnabled('l01_link_upper',false);
+  assert.equal(findPath(nav,cellId(7,3),cellId(8,3,1)),null);
 });
 
 test('4-way A* never diagonally cuts corners and routes around fence', () => {

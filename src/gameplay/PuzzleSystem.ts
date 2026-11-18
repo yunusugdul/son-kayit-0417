@@ -5,7 +5,13 @@ export interface PuzzlePorts {
 }
 export class PuzzleSystem {
   private readonly fired = new Set<string>();
-  constructor(private readonly definitions: PuzzleDef[], private readonly flags: ReadonlySet<string>, private readonly ports: PuzzlePorts) {
+  private readonly definitions: PuzzleDef[];
+  private readonly flags: ReadonlySet<string>;
+  private readonly ports: PuzzlePorts;
+  constructor(definitions: PuzzleDef[], flags: ReadonlySet<string>, ports: PuzzlePorts) {
+    this.definitions = definitions;
+    this.flags = flags;
+    this.ports = ports;
     for (const puzzle of definitions) {
       if (puzzle.then.some(action => action.type === 'setFlag') &&
           puzzle.then.filter(action => action.type === 'setFlag')
