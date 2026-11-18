@@ -66,6 +66,8 @@ test('L01 A echo, interior note, B echo, upper shelf and Efe completion',async({
   await clickAt(page,3.5,1.57,-1.5);
   await page.waitForFunction(()=>window.__stage3?.completed(),null,{timeout:9000});
   expect(await page.evaluate(()=>window.__stage3!.flags())).toContain('l01_record_found');
+  await expect(page.locator('#subtitle-box')).toContainText('Ada, beni hatırla');
+  await page.locator('#subtitle-dismiss').click();
   await expect(page.locator('#completion-overlay')).toBeVisible();
   await expect(page.locator('#completion-overlay')).toContainText('L02');
 });

@@ -295,6 +295,7 @@ async function startStage1(
   const story = new StoryDirector(ui.subtitle);
   let checkpoint: GameSave['checkpointId'] = 'cp_l01_start';
   let completed = false;
+  let pendingCompletion = false;
   let puzzle: PuzzleSystem;
   let paused = true;
   let hintIndex = 0;
@@ -335,7 +336,8 @@ async function startStage1(
         break;
       case 'completeLevel':
         completed = true;
-        ui.complete.hidden = false;
+        pendingCompletion = true;
+        // Let the player read Efe's full transcript before the chapter-end overlay.
         paused = true;
         audio.play('checkpoint');
         break;
@@ -356,6 +358,7 @@ async function startStage1(
     ownedTapes.clear(); for (const tape of save.tapes) ownedTapes.add(tape);
     checkpoint = save.checkpointId;
     completed = save.completedLevels.includes('l01_post_office');
+    pendingCompletion = false;
     const spawn = level.checkpoints.find(cp => cp.id === checkpoint);
     if (!spawn) throw new Error('Missing checkpoint in level');
     player.resetTo(spawn.position[0],spawn.position[2]);
@@ -584,9 +587,16 @@ async function startStage1(
   ui.menuControl.addEventListener('click',returnToMenu);
   ui.completeMenu.addEventListener('click',returnToMenu);
   ui.hintButton.addEventListener('click',showHint);
-  ui.subtitleDismiss.addEventListener('click',() => {
-    story.dismiss(); ui.subtitleBox.hidden = true;
-  });
+  function dismissSubtitle(): void {
+    story.dismiss();
+    ui.subtitleBox.hidden = true;
+    if (pendingCompletion) {
+      pendingCompletion = false;
+      ui.complete.hidden = false;
+      paused = true;
+    }
+  }
+  ui.subtitleDismiss.addEventListener('click',dismissSubtitle);
   ui.export.addEventListener('click',exportSave);
   ui.pauseExport.addEventListener('click',exportSave);
   ui.import.addEventListener('click',() => ui.importFile.click());
@@ -604,7 +614,7 @@ async function startStage1(
     if (event.code === 'Escape' && !event.repeat) { event.preventDefault(); togglePause(); }
     if (event.code === 'KeyH' && !event.repeat) { event.preventDefault(); showHint(); }
     if (event.code === 'Enter' && !ui.subtitleBox.hidden) {
-      event.preventDefault(); story.dismiss(); ui.subtitleBox.hidden = true;
+      event.preventDefault(); dismissSubtitle();
     }
   });
   document.addEventListener('visibilitychange', () => {
